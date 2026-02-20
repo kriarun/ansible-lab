@@ -1,0 +1,4 @@
+ansible_connection: local
+gather_facts: false
+debug_mode: true
+env_name: lab

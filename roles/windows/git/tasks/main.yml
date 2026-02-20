@@ -1,0 +1,7 @@
+- name: "[DEBUG] windows/git would install using catalog entry"
+  debug:
+    msg:
+      role: "git"
+      os: "windows"
+      catalog: "{{ software_catalog.git | default({}) }}"
+      debug_mode: "{{ debug_mode | default(false) }}"

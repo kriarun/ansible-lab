@@ -1,0 +1,4 @@
+software_catalog:
+  gitlab_runner:
+    source: share
+    share_path: "/mnt/share/gitlab-runner/gitlab-runner"

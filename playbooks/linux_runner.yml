@@ -1,0 +1,33 @@
+- name: Linux GitLab Runner (Phase 1 Debug)
+  hosts: linux_gitlab_runner
+  gather_facts: false
+
+  vars_files:
+    - ../group_vars_common/linux/software_catalog.yml
+    - ../group_vars_common/linux/machines/gitlab_runner.yml
+
+  pre_tasks:
+    - name: Compute final roles for linux machine
+      set_fact:
+        _remove_roles: "{{ remove_roles | default([]) }}"
+        final_roles: >-
+          {{
+            (machine_roles | default([]))
+            | unique
+            | difference(remove_roles | default([]))
+          }}
+
+    - name: Debug composition
+      debug:
+        msg:
+          host: "{{ inventory_hostname }}"
+          groups: "{{ group_names }}"
+          machine_roles: "{{ machine_roles | default([]) }}"
+          remove_roles: "{{ _remove_roles }}"
+          final_roles: "{{ final_roles }}"
+
+  tasks:
+    - name: Execute final roles
+      include_role:
+        name: "linux/{{ item }}"
+      loop: "{{ final_roles }}"

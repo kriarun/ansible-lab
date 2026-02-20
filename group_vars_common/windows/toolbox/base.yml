@@ -1,0 +1,4 @@
+base_roles:
+  - git
+  - vscode
+  - postman

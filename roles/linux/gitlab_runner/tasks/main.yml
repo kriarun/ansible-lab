@@ -1,0 +1,6 @@
+- debug:
+    msg:
+      role: "gitlab_runner"
+      os: "linux"
+      catalog: "{{ software_catalog.gitlab_runner | default({}) }}"
+      debug_mode: "{{ debug_mode | default(false) }}"

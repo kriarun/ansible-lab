@@ -1,0 +1,17 @@
+# Ansible
+*.retry
+*.log
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+
+# Secrets (if added later)
+inventories/*/group_vars/vault.yml

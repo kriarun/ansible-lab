@@ -1,0 +1,13 @@
+software_catalog:
+  git:
+    source: share
+    share_path: "\\\\fileserver\\share\\git\\GitInstaller.exe"
+  vscode:
+    source: jfrog
+    jfrog_url: "https://jfrog.example/artifactory/vscode/vscode.exe"
+  postman:
+    source: share
+    share_path: "\\\\fileserver\\share\\postman\\Postman.exe"
+  dotnet:
+    source: jfrog
+    jfrog_url: "https://jfrog.example/artifactory/dotnet/dotnet-hosting.exe"

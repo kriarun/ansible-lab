@@ -1,0 +1,6 @@
+- debug:
+    msg:
+      role: "vscode"
+      os: "windows"
+      catalog: "{{ software_catalog.vscode | default({}) }}"
+      debug_mode: "{{ debug_mode | default(false) }}"

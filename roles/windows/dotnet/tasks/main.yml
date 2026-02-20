@@ -1,0 +1,6 @@
+- debug:
+    msg:
+      role: "dotnet"
+      os: "windows"
+      catalog: "{{ software_catalog.dotnet | default({}) }}"
+      debug_mode: "{{ debug_mode | default(false) }}"

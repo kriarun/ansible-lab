@@ -1,0 +1,42 @@
+- name: Windows UiPath Machines (Phase 1 Debug)
+  hosts: uipath_orchestrator:uipath_test_manager
+  gather_facts: false
+
+  vars_files:
+    - ../group_vars_common/windows/software_catalog.yml
+
+  pre_tasks:
+    - name: Load machine blueprint for orchestrator
+      include_vars:
+        file: "../group_vars_common/windows/machines/uipath_orchestrator.yml"
+      when: "'uipath_orchestrator' in group_names"
+
+    - name: Load machine blueprint for test manager
+      include_vars:
+        file: "../group_vars_common/windows/machines/uipath_test_manager.yml"
+      when: "'uipath_test_manager' in group_names"
+
+    - name: Compute final roles for machine
+      set_fact:
+        _remove_roles: "{{ remove_roles | default([]) }}"
+        final_roles: >-
+          {{
+            (machine_roles | default([]))
+            | unique
+            | difference(remove_roles | default([]))
+          }}
+
+    - name: Debug composition
+      debug:
+        msg:
+          host: "{{ inventory_hostname }}"
+          groups: "{{ group_names }}"
+          machine_roles: "{{ machine_roles | default([]) }}"
+          remove_roles: "{{ _remove_roles }}"
+          final_roles: "{{ final_roles }}"
+
+  tasks:
+    - name: Execute final roles (debug-only roles for now)
+      include_role:
+        name: "windows/{{ item }}"
+      loop: "{{ final_roles }}"
