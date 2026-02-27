@@ -1,0 +1,115 @@
+---
+# Expects: software_key, software_catalog, installer_cache_dir
+# Returns: resolved_item
+
+- name: "Validate software key exists in catalog"
+  fail:
+    msg: "Software key '{{ software_key }}' not found in software_catalog"
+  when: software_catalog[software_key] is not defined
+
+- name: "Load software entry"
+  set_fact:
+    sw: "{{ software_catalog[software_key] }}"
+
+- name: "Validate 'source' is defined"
+  fail:
+    msg: "Software '{{ software_key }}' missing required field: source"
+  when: sw.source is not defined
+
+- name: "Validate supported source type"
+  fail:
+    msg: "Software '{{ software_key }}' has unsupported source '{{ sw.source }}'. Supported: jfrog, share, share_copy, local"
+  when: sw.source not in ["jfrog", "share", "share_copy", "local"]
+
+# jfrog -> always local
+- name: "Validate jfrog fields"
+  fail:
+    msg: "Software '{{ software_key }}' (jfrog) must define: jfrog_url, filename, install_args"
+  when: sw.source == "jfrog" and (sw.jfrog_url is not defined or sw.filename is not defined or sw.install_args is not defined)
+
+- name: "Set resolved item (jfrog)"
+  set_fact:
+    resolved_item:
+      software_key: "{{ software_key }}"
+      source:
+        type: "jfrog"
+        original_path: "{{ sw.jfrog_url }}"
+        requires_transfer: true
+      installer:
+        final_path: "{{ installer_cache_dir }}\\{{ sw.filename }}"
+        filename: "{{ sw.filename }}"
+      install:
+        arguments: "{{ sw.install_args }}"
+        method: "exe"
+  when: sw.source == "jfrog"
+
+# share -> direct install from UNC path
+- name: "Validate share fields"
+  fail:
+    msg: "Software '{{ software_key }}' (share) must define: share_path, filename, install_args"
+  when: sw.source == "share" and (sw.share_path is not defined or sw.filename is not defined or sw.install_args is not defined)
+
+- name: "Set resolved item (share)"
+  set_fact:
+    resolved_item:
+      software_key: "{{ software_key }}"
+      source:
+        type: "share"
+        original_path: "{{ sw.share_path }}"
+        requires_transfer: false
+      installer:
+        final_path: "{{ sw.share_path }}"
+        filename: "{{ sw.filename }}"
+      install:
+        arguments: "{{ sw.install_args }}"
+        method: "exe"
+  when: sw.source == "share"
+
+# share_copy -> copy to local then install
+- name: "Validate share_copy fields"
+  fail:
+    msg: "Software '{{ software_key }}' (share_copy) must define: share_path, filename, install_args"
+  when: sw.source == "share_copy" and (sw.share_path is not defined or sw.filename is not defined or sw.install_args is not defined)
+
+- name: "Set resolved item (share_copy)"
+  set_fact:
+    resolved_item:
+      software_key: "{{ software_key }}"
+      source:
+        type: "share_copy"
+        original_path: "{{ sw.share_path }}"
+        requires_transfer: true
+      installer:
+        final_path: "{{ installer_cache_dir }}\\{{ sw.filename }}"
+        filename: "{{ sw.filename }}"
+      install:
+        arguments: "{{ sw.install_args }}"
+        method: "exe"
+  when: sw.source == "share_copy"
+
+# local -> install from local_path if set else from cache dir
+- name: "Validate local fields"
+  fail:
+    msg: "Software '{{ software_key }}' (local) must define: filename, install_args (local_path optional)"
+  when: sw.source == "local" and (sw.filename is not defined or sw.install_args is not defined)
+
+- name: "Compute local final path"
+  set_fact:
+    local_final_path: "{{ sw.local_path if sw.local_path is defined else installer_cache_dir ~ '\\\\' ~ sw.filename }}"
+  when: sw.source == "local"
+
+- name: "Set resolved item (local)"
+  set_fact:
+    resolved_item:
+      software_key: "{{ software_key }}"
+      source:
+        type: "local"
+        original_path: "{{ local_final_path }}"
+        requires_transfer: false
+      installer:
+        final_path: "{{ local_final_path }}"
+        filename: "{{ sw.filename }}"
+      install:
+        arguments: "{{ sw.install_args }}"
+        method: "exe"
+  when: sw.source == "local"
