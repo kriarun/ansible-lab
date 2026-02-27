@@ -1,0 +1,33 @@
+---
+- name: "Initialize resolved list"
+  set_fact:
+    resolved_packages: []
+
+- name: "Resolve python packages"
+  include_tasks: ../common/tasks/resolve_installer.yml
+  loop: "{{ python_packages }}"
+  loop_control:
+    loop_var: software_key
+  register: resolve_results
+
+- name: "Aggregate resolved items"
+  set_fact:
+    resolved_packages: "{{ resolved_packages + [ item.ansible_facts.resolved_item ] }}"
+  loop: "{{ resolve_results.results }}"
+
+- name: "Debug plan (python role)"
+  when: debug_mode | bool
+  block:
+    - debug:
+        msg: "================ ROLE: python ================"
+    - debug:
+        msg: |
+          Software: {{ item.software_key }}
+            Source Type: {{ item.source.type }}
+            Original Path: {{ item.source.original_path }}
+            Requires Transfer: {{ item.source.requires_transfer }}
+            Final Installer Path: {{ item.installer.final_path }}
+            Install Arguments: {{ item.install.arguments }}
+      loop: "{{ resolved_packages }}"
+    - debug:
+        msg: "================================================"
