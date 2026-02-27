@@ -1,13 +1,25 @@
 software_catalog:
-  git:
-    source: share
-    share_path: "\\\\fileserver\\share\\git\\GitInstaller.exe"
-  vscode:
+  python_3_11_7:
     source: jfrog
-    jfrog_url: "https://jfrog.example/artifactory/vscode/vscode.exe"
-  postman:
-    source: share
-    share_path: "\\\\fileserver\\share\\postman\\Postman.exe"
-  dotnet:
+    jfrog_url: "https://jfrog.example/artifactory/python/python-3.11.7-amd64.exe"
+    filename: "python-3.11.7-amd64.exe"
+    install_args: "/quiet InstallAllUsers=1 PrependPath=0 Include_test=0"
+
+  python_3_12_1:
     source: jfrog
-    jfrog_url: "https://jfrog.example/artifactory/dotnet/dotnet-hosting.exe"
+    jfrog_url: "https://jfrog.example/artifactory/python/python-3.12.1-amd64.exe"
+    filename: "python-3.12.1-amd64.exe"
+    install_args: "/quiet InstallAllUsers=1 PrependPath=0 Include_test=0"
+
+  # Examples for later (not used by python role)
+  git_2_44_0:
+    source: local
+    local_path: "D:\\ManualDrops\\Git-2.44.0-64-bit.exe"
+    filename: "Git-2.44.0-64-bit.exe"
+    install_args: "/VERYSILENT"
+
+  vscode_1_87_0:
+    source: share_copy
+    share_path: "\\\\fileserver\\share\\vscode\\VSCodeSetup-x64-1.87.0.exe"
+    filename: "VSCodeSetup-x64-1.87.0.exe"
+    install_args: "/VERYSILENT /NORESTART"
