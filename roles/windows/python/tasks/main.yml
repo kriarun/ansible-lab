@@ -8,13 +8,7 @@
   loop: "{{ python_packages }}"
   loop_control:
     loop_var: software_key
-  register: resolve_results
-
-- name: "Aggregate resolved items"
-  set_fact:
-    resolved_packages: "{{ resolved_packages + [ item.ansible_facts.resolved_item ] }}"
-  loop: "{{ resolve_results.results }}"
-
+  
 - name: "Debug plan (python role)"
   when: debug_mode | bool
   block:

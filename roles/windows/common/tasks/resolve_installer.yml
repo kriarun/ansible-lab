@@ -113,3 +113,7 @@
         arguments: "{{ sw.install_args }}"
         method: "exe"
   when: sw.source == "local"
+
+- name: "Append resolved item"
+  set_fact:
+    resolved_packages: "{{ resolved_packages + [ resolved_item ] }}"

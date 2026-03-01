@@ -11,10 +11,10 @@
         file: "../group_vars_common/windows/machines/uipath_orchestrator.yml"
       when: "'uipath_orchestrator' in group_names"
 
-    - name: Load machine blueprint for test manager
-      include_vars:
-        file: "../group_vars_common/windows/machines/uipath_test_manager.yml"
-      when: "'uipath_test_manager' in group_names"
+    #- name: Load machine blueprint for test manager
+    #  include_vars:
+    #    file: "../group_vars_common/windows/machines/uipath_test_manager.yml"
+    #  when: "'uipath_test_manager' in group_names"
 
     - name: Compute final roles for machine
       set_fact:
