@@ -1,0 +1,26 @@
+---
+# Expects: software_key, sw, installer_cache_dir
+# Sets: resolved_item
+
+- name: Validate jfrog fields
+  ansible.builtin.assert:
+    that:
+      - sw.jfrog_url is defined
+      - sw.filename is defined
+      - sw.install_args is defined
+    fail_msg: >-
+      Software '{{ software_key }}' (jfrog) must define: jfrog_url, filename, install_args
+
+- name: Set resolved item (jfrog)
+  ansible.builtin.set_fact:
+    resolved_item:
+      software_key: "{{ software_key }}"
+      source:
+        type: "jfrog"
+        original_path: "{{ sw.jfrog_url }}"
+        requires_transfer: true
+      installer:
+        final_path: "{{ installer_cache_dir }}\\{{ sw.filename }}"
+        filename: "{{ sw.filename }}"
+      install:
+        arguments: "{{ sw.install_args }}"        

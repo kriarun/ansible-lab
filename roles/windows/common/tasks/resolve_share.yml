@@ -1,0 +1,34 @@
+---
+# Expects: software_key, sw
+# Sets: resolved_item
+
+- name: Validate share fields
+  ansible.builtin.assert:
+    that:
+      - sw.share_path is defined
+      - sw.filename is defined
+      - sw.install_args is defined
+    fail_msg: >-
+      Software '{{ software_key }}' (share) must define: share_path (directory), filename, install_args
+
+- name: Validate share_path is a directory (not a file path)
+  ansible.builtin.assert:
+    that:
+      - not ((sw.share_path | lower).endswith('.exe') or (sw.share_path | lower).endswith('.msi'))
+    fail_msg: >-
+      Software '{{ software_key }}' (share): share_path must be a DIRECTORY, not a file:
+      '{{ sw.share_path }}'
+
+- name: Set resolved item (share)
+  ansible.builtin.set_fact:
+    resolved_item:
+      software_key: "{{ software_key }}"
+      source:
+        type: "share"
+        original_path: "{{ sw.share_path }}\\{{ sw.filename }}"
+        requires_transfer: false
+      installer:
+        final_path: "{{ sw.share_path }}\\{{ sw.filename }}"
+        filename: "{{ sw.filename }}"
+      install:
+        arguments: "{{ sw.install_args }}"        

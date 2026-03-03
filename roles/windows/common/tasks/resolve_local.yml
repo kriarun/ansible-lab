@@ -1,0 +1,25 @@
+---
+# Expects: software_key, sw, installer_cache_dir
+# Sets: resolved_item
+
+- name: Validate local fields
+  ansible.builtin.assert:
+    that:
+      - sw.filename is defined
+      - sw.install_args is defined
+    fail_msg: >-
+      Software '{{ software_key }}' (local) must define: filename, install_args (local_path optional)
+
+- name: Set resolved item (local)
+  ansible.builtin.set_fact:
+    resolved_item:
+      software_key: "{{ software_key }}"
+      source:
+        type: "local"
+        original_path: "{{ sw.local_path }}"
+        requires_transfer: false
+      installer:
+        final_path: "{{ sw.local_path }}"
+        filename: "{{ sw.filename }}"
+      install:
+        arguments: "{{ sw.install_args }}"        

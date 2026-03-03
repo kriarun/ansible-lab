@@ -1,5 +1,5 @@
 - name: Windows UiPath Machines (Phase 1 Debug)
-  hosts: uipath_orchestrator:uipath_test_manager
+  hosts: uipath_orchestrator
   gather_facts: false
 
   vars_files:

@@ -20,6 +20,6 @@ software_catalog:
 
   vscode_1_87_0:
     source: share_copy
-    share_path: "\\\\fileserver\\share\\vscode\\VSCodeSetup-x64-1.87.0.exe"
+    share_path: "\\\\fileserver\\share\\vscode"
     filename: "VSCodeSetup-x64-1.87.0.exe"
     install_args: "/VERYSILENT /NORESTART"
