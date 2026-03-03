@@ -1,0 +1,59 @@
+# Expects: pkg (one resolved_item)
+
+# -----------------------
+# 1. Precheck (Idempotence)
+# -----------------------
+- name: Check if software already installed (marker)
+  ansible.windows.win_stat:
+    path: "{{ pkg.install.check.path_exists }}"
+  register: marker_check
+
+- name: Set installed flag
+  ansible.builtin.set_fact:
+    _pkg_is_installed: "{{ marker_check.stat.exists | bool }}"
+
+# -----------------------
+# 2. Validate installer exists (local only)
+# -----------------------
+- name: Validate local installer exists
+  ansible.windows.win_stat:
+    path: "{{ pkg.installer.final_path }}"
+  register: installer_file
+  when:
+    - not _pkg_is_installed
+    - pkg.source.type == "local"
+
+- name: Fail if installer missing
+  ansible.builtin.assert:
+    that:
+      - installer_file.stat.exists
+    fail_msg: "Installer not found at {{ pkg.installer.final_path }}"
+  when:
+    - not _pkg_is_installed
+    - pkg.source.type == "local"
+
+# -----------------------
+# 3. Install (EXE)
+# -----------------------
+- name: Install package (EXE)
+  ansible.windows.win_package:
+    path: "{{ pkg.installer.final_path }}"
+    arguments: "{{ pkg.install.arguments }}"
+    state: present
+  when:
+    - not _pkg_is_installed
+    - pkg.install.type == "exe"
+
+# -----------------------
+# 4. Verify installation
+# -----------------------
+- name: Verify installation marker
+  ansible.windows.win_stat:
+    path: "{{ pkg.install.check.path_exists }}"
+  register: verify_marker
+
+- name: Ensure installation succeeded
+  ansible.builtin.assert:
+    that:
+      - verify_marker.stat.exists
+    fail_msg: "Installation failed for {{ pkg.software_key }}"

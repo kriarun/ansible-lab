@@ -13,10 +13,17 @@ software_catalog:
 
   # Examples for later (not used by python role)
   git_2_44_0:
-    source: local
-    local_path: "D:\\ManualDrops\\Git-2.44.0-64-bit.exe"
-    filename: "Git-2.44.0-64-bit.exe"
-    install_args: "/VERYSILENT"
+    source:
+      type: local
+      path: "D:\\ManualDrops"
+      filename: "Git-2.44.0-64-bit.exe"
+
+    install:
+      type: exe
+      arguments: "/VERYSILENT"
+      check:
+        path_exists: "C:\\Program Files\\Git\\bin\\git.exe"
+
 
   vscode_1_87_0:
     source: share_copy

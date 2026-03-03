@@ -1,4 +1,3 @@
----
 # Expects: software_key, software_catalog, installer_cache_dir
 # Side effects:
 # - sets: sw
@@ -18,33 +17,60 @@
   ansible.builtin.set_fact:
     sw: "{{ software_catalog[software_key] }}"
 
-- name: Validate source is defined and supported
+# -------------------------
+# Validate source structure
+# -------------------------
+- name: Validate source structure
   ansible.builtin.assert:
     that:
       - sw.source is defined
-      - sw.source in ["jfrog", "share", "share_copy", "local"]
+      - sw.source.type is defined
+      - sw.source.type in ["jfrog", "share", "share_copy", "local"]
     fail_msg: >-
-      Software '{{ software_key }}' has invalid or missing source '{{ sw.source | default("UNDEFINED") }}'.
-      Supported: jfrog, share, share_copy, local
+      Software '{{ software_key }}' has invalid or missing source definition.
+      Supported types: jfrog, share, share_copy, local
 
+# -------------------------
+# Validate install structure
+# -------------------------
+- name: Validate install structure
+  ansible.builtin.assert:
+    that:
+      - sw.install is defined
+      - sw.install.type is defined
+      - sw.install.check is defined
+      - sw.install.check.path_exists is defined
+    fail_msg: >-
+      Software '{{ software_key }}' is missing required install metadata
+      (install.type and install.check.path_exists are mandatory).
 
+# Optional: normalize source_type for readability
+- name: Normalize source_type
+  ansible.builtin.set_fact:
+    source_type: "{{ sw.source.type }}"
+
+# -------------------------
 # Route to per-source resolver
+# -------------------------
 - name: Resolve source type jfrog
   ansible.builtin.include_tasks: resolve_jfrog.yml
-  when: sw.source == "jfrog"
+  when: source_type == "jfrog"
 
 - name: Resolve source type share
   ansible.builtin.include_tasks: resolve_share.yml
-  when: sw.source == "share"
+  when: source_type == "share"
 
 - name: Resolve source type share_copy
   ansible.builtin.include_tasks: resolve_share_copy.yml
-  when: sw.source == "share_copy"
+  when: source_type == "share_copy"
 
 - name: Resolve source type local
   ansible.builtin.include_tasks: resolve_local.yml
-  when: sw.source == "local"
+  when: source_type == "local"
 
+# -------------------------
+# Final validation
+# -------------------------
 - name: Validate resolved_item is produced
   ansible.builtin.assert:
     that:
@@ -52,7 +78,11 @@
       - resolved_item.software_key is defined
       - resolved_item.installer is defined
       - resolved_item.installer.final_path is defined
-    fail_msg: "Resolver did not produce resolved_item correctly for '{{ software_key }}'"
+      - resolved_item.install is defined
+      - resolved_item.install.type is defined
+      - resolved_item.install.check.path_exists is defined
+    fail_msg: >-
+      Resolver did not produce a valid resolved_item for '{{ software_key }}'
 
 - name: Append resolved item
   ansible.builtin.set_fact:

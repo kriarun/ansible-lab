@@ -1,7 +1,7 @@
 machine_roles:
-  - python
+  #- python
   - git
-  - vscode
+  #- vscode
 
 python_packages:
   - python_3_11_7
