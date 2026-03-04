@@ -1,8 +1,6 @@
 # Expects: pkg (one resolved_item)
 
-# -----------------------
-# 1. Precheck (Idempotence)
-# -----------------------
+# 1) Precheck
 - name: Check if software already installed (marker)
   ansible.windows.win_stat:
     path: "{{ pkg.install.check.path_exists }}"
@@ -12,10 +10,14 @@
   ansible.builtin.set_fact:
     _pkg_is_installed: "{{ marker_check.stat.exists | bool }}"
 
-# -----------------------
-# 2. Validate installer exists (local only)
-# -----------------------
-- name: Validate local installer exists
+# 2) Acquire/Transfer (only if not installed)
+- name: Acquire from jfrog
+  ansible.builtin.include_tasks: acquire_jfrog.yml
+  when:
+    - not _pkg_is_installed
+    - pkg.source.type == "jfrog"
+
+- name: Validate local installer exists (local)
   ansible.windows.win_stat:
     path: "{{ pkg.installer.final_path }}"
   register: installer_file
@@ -23,7 +25,7 @@
     - not _pkg_is_installed
     - pkg.source.type == "local"
 
-- name: Fail if installer missing
+- name: Fail if local installer missing
   ansible.builtin.assert:
     that:
       - installer_file.stat.exists
@@ -32,9 +34,7 @@
     - not _pkg_is_installed
     - pkg.source.type == "local"
 
-# -----------------------
-# 3. Install (EXE)
-# -----------------------
+# 3) Install
 - name: Install package (EXE)
   ansible.windows.win_package:
     path: "{{ pkg.installer.final_path }}"
@@ -44,9 +44,7 @@
     - not _pkg_is_installed
     - pkg.install.type == "exe"
 
-# -----------------------
-# 4. Verify installation
-# -----------------------
+# 4) Verify
 - name: Verify installation marker
   ansible.windows.win_stat:
     path: "{{ pkg.install.check.path_exists }}"

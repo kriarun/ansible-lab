@@ -1,15 +1,28 @@
 software_catalog:
-  python_3_11_7:
-    source: jfrog
-    jfrog_url: "https://jfrog.example/artifactory/python/python-3.11.7-amd64.exe"
-    filename: "python-3.11.7-amd64.exe"
-    install_args: "/quiet InstallAllUsers=1 PrependPath=0 Include_test=0"
+python_3_13_2:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "python-3.13.2-amd64.exe"
 
-  python_3_12_1:
-    source: jfrog
-    jfrog_url: "https://jfrog.example/artifactory/python/python-3.12.1-amd64.exe"
-    filename: "python-3.12.1-amd64.exe"
-    install_args: "/quiet InstallAllUsers=1 PrependPath=0 Include_test=0"
+  install:
+    type: exe
+    arguments: "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
+    check:
+      path_exists: "C:\\Program Files\\Python313\\python.exe"
+
+
+python_3_10_11:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "python-3.10.11-amd64.exe"
+
+  install:
+    type: exe
+    arguments: "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
+    check:
+      path_exists: "C:\\Program Files\\Python310\\python.exe"
 
   # Examples for later (not used by python role)
   git_2_44_0:
@@ -30,3 +43,27 @@ software_catalog:
     share_path: "\\\\fileserver\\share\\vscode"
     filename: "VSCodeSetup-x64-1.87.0.exe"
     install_args: "/VERYSILENT /NORESTART"
+
+git_2_44_0_jfrog:
+  source:
+    type: jfrog
+    # Prefer providing a full, direct download URL:
+    url: "https://jfrog.company.com/artifactory/tools/git/Git-2.44.0-64-bit.exe"
+    filename: "Git-2.44.0-64-bit.exe"
+
+    # Auth options (choose ONE approach)
+    # Option A: API key (sent as header)
+    api_key: "{{ jfrog_api_key }}"
+
+    # Option B: Bearer token
+    # bearer_token: "{{ jfrog_token }}"
+
+    # Option C: Basic auth
+    # username: "{{ jfrog_user }}"
+    # password: "{{ jfrog_password }}"
+
+  install:
+    type: exe
+    arguments: "/VERYSILENT"
+    check:
+      path_exists: "C:\\Program Files\\Git\\bin\\git.exe"

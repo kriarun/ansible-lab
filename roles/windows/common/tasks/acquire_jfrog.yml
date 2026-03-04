@@ -1,0 +1,53 @@
+# Expects: pkg (resolved_item)
+
+- name: Ensure cache directory exists (jfrog)
+  ansible.windows.win_file:
+    path: "{{ pkg.installer.final_path | dirname }}"
+    state: directory
+
+# If you use API key header
+- name: Download from JFrog (API key)
+  ansible.windows.win_get_url:
+    url: "{{ pkg.source.original_path }}"
+    dest: "{{ pkg.installer.final_path }}"
+    force: false
+    headers:
+      X-JFrog-Art-Api: "{{ pkg.source.api_key }}"
+  when: pkg.source.api_key is defined
+
+# If you use bearer token
+- name: Download from JFrog (Bearer token)
+  ansible.windows.win_get_url:
+    url: "{{ pkg.source.original_path }}"
+    dest: "{{ pkg.installer.final_path }}"
+    force: false
+    headers:
+      Authorization: "Bearer {{ pkg.source.bearer_token }}"
+  when:
+    - pkg.source.api_key is not defined
+    - pkg.source.bearer_token is defined
+
+# If you use basic auth
+- name: Download from JFrog (Basic auth)
+  ansible.windows.win_get_url:
+    url: "{{ pkg.source.original_path }}"
+    dest: "{{ pkg.installer.final_path }}"
+    force: false
+    url_username: "{{ pkg.source.username }}"
+    url_password: "{{ pkg.source.password }}"
+  when:
+    - pkg.source.api_key is not defined
+    - pkg.source.bearer_token is not defined
+    - pkg.source.username is defined
+    - pkg.source.password is defined
+
+- name: Validate downloaded artifact exists
+  ansible.windows.win_stat:
+    path: "{{ pkg.installer.final_path }}"
+  register: _dl
+
+- name: Assert download succeeded
+  ansible.builtin.assert:
+    that:
+      - _dl.stat.exists | bool
+    fail_msg: "JFrog download failed for {{ pkg.software_key }} to {{ pkg.installer.final_path }}"
