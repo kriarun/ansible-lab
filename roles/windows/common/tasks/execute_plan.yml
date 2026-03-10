@@ -44,6 +44,16 @@
     - not _pkg_is_installed
     - pkg.install.type == "exe"
 
+   # 3) Install
+- name: Install package (MSI)
+  ansible.windows.win_package:
+    path: "{{ pkg.installer.final_path }}"
+    arguments: "{{ pkg.install.arguments }}"
+    state: present
+  when:
+    - not _pkg_is_installed
+    - pkg.install.type == "msi" 
+
 # 4) Verify
 - name: Verify installation marker
   ansible.windows.win_stat:

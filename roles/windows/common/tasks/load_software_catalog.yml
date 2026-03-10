@@ -1,0 +1,28 @@
+---
+- name: Find software catalog fragment files
+  ansible.builtin.find:
+    paths: "{{ playbook_dir }}/../../group_vars_common/windows/software_catalog"
+    patterns: "*.yml"
+    file_type: file
+  register: _catalog_files
+  delegate_to: localhost
+  run_once: true
+
+
+- name: Initialize merged software catalog
+  ansible.builtin.set_fact:
+    software_catalog: {}
+  run_once: true
+
+
+- name: Merge software catalog fragments
+  ansible.builtin.set_fact:
+    software_catalog: >-
+      {{
+        software_catalog
+        | combine((lookup('file', item.path) | from_yaml), recursive=True)
+      }}
+  loop: "{{ _catalog_files.files | sort(attribute='path') }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+  run_once: true

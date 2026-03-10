@@ -44,6 +44,12 @@
       Software '{{ software_key }}' is missing required install metadata
       (install.type and install.check.path_exists are mandatory).
 
+- name: Validate install type
+  ansible.builtin.assert:
+    that:
+      - resolved.install_type in ['exe', 'msi', 'zip']
+    fail_msg: "Unsupported install type: {{ resolved.install_type }}"
+
 # Optional: normalize source_type for readability
 - name: Normalize source_type
   ansible.builtin.set_fact:
