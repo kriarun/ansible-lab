@@ -1,0 +1,17 @@
+machine_roles:
+  #- python
+  - git
+  #- vscode
+
+python_packages:
+  - python_3_11_7
+  - python_3_12_1
+
+git_packages:
+  - git_2_44_0
+
+vscode_packages:
+  - vscode_1_87_0
+
+debug_mode: true
+installer_cache_dir: "C:\\Temp\\ansible\\installers"

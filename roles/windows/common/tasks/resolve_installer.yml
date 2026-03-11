@@ -4,6 +4,10 @@
 # - sets: resolved_item
 # - appends resolved_item to resolved_packages
 
+- name: Print software catalog
+  ansible.builtin.debug:
+    var: software_catalog
+
 - name: Validate software key exists in catalog
   ansible.builtin.assert:
     that:
@@ -11,7 +15,7 @@
       - software_catalog[software_key] is defined
     fail_msg: >-
       Software key '{{ software_key }}' not found in software_catalog.
-      Available keys: {{ (software_catalog | default({})).keys() | list }}
+      Available keys: {{ (software_catalog | default({}, true)).keys() | list }}
 
 - name: Load software entry
   ansible.builtin.set_fact:
@@ -47,8 +51,8 @@
 - name: Validate install type
   ansible.builtin.assert:
     that:
-      - resolved.install_type in ['exe', 'msi', 'zip']
-    fail_msg: "Unsupported install type: {{ resolved.install_type }}"
+      - sw.install.type in ['exe', 'msi', 'zip']
+    fail_msg: "Unsupported install type: {{ sw.install.type }}"
 
 # Optional: normalize source_type for readability
 - name: Normalize source_type

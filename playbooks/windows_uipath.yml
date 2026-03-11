@@ -3,17 +3,17 @@
   gather_facts: false
 
   vars_files:
-    - ../group_vars_common/windows/software_catalog.yml
+    - ../profiles/windows/software_catalog.yml
 
   pre_tasks:
     - name: Load machine blueprint for orchestrator
       include_vars:
-        file: "../group_vars_common/windows/machines/uipath_orchestrator.yml"
+        file: "../profiles/windows/machines/uipath_orchestrator.yml"
       when: "'uipath_orchestrator' in group_names"
 
     #- name: Load machine blueprint for test manager
     #  include_vars:
-    #    file: "../group_vars_common/windows/machines/uipath_test_manager.yml"
+    #    file: "../profiles/windows/machines/uipath_test_manager.yml"
     #  when: "'uipath_test_manager' in group_names"
 
     - name: Compute final roles for machine

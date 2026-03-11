@@ -1,0 +1,7 @@
+base_roles:
+  - git
+  - vscode
+  - postman
+
+vscode_packages:
+  - vscode_1_87_0

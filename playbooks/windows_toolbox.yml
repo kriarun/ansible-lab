@@ -3,13 +3,13 @@
   gather_facts: false
 
   vars_files:
-    - ../group_vars_common/windows/software_catalog.yml
-    - ../group_vars_common/windows/toolbox/base.yml
+    - ../profiles/windows/software_catalog.yml
+    - ../profiles/windows/toolbox/base.yml
 
   pre_tasks:
     - name: Load team blueprint if host is in a team group (alpha example)
       include_vars:
-        file: "../group_vars_common/windows/toolbox/team_alpha.yml"
+        file: "../profiles/windows/toolbox/team_alpha.yml"
       when: "'team_toolbox_alpha' in group_names"
 
     - name: Compute final roles for toolbox
