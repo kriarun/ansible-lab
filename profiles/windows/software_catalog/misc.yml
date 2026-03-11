@@ -1,4 +1,3 @@
-software_catalog:
   git_2_44_0:
     source:
       type: local
@@ -12,8 +11,8 @@ software_catalog:
 
   vscode_1_87_0:
     source:
-      type: local
-      path: "D:\\ManualDrops"
+      type: jfrog
+      url: "https://jfrog.com"      
       filename: "Git-2.44.0-64-bit.exe"
     install:
       type: exe
@@ -23,7 +22,7 @@ software_catalog:
 
   python_3_13_2:
     source:
-      type: local
+      type: jfrog
       path: "D:\\ManualDrops"
       filename: "python-3.13.2-amd64.exe"
     install:

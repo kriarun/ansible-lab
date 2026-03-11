@@ -1,2 +1,7 @@
 team_roles:
   - dotnet
+
+
+  
+debug_mode: true
+installer_cache_dir: "C:\\Temp\\ansible\\installers"

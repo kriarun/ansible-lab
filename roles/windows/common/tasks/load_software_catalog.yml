@@ -1,7 +1,7 @@
 ---
 - name: Find software catalog fragment files
   ansible.builtin.find:
-    paths: "{{ playbook_dir }}/../../group_vars_common/windows/software_catalog"
+    paths: "{{ role_path }}/../../../profiles/windows/software_catalog"
     patterns: "*.yml"
     file_type: file
   register: _catalog_files

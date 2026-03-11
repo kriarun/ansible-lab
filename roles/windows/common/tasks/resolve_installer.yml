@@ -4,6 +4,10 @@
 # - sets: resolved_item
 # - appends resolved_item to resolved_packages
 
+- name: Load software catalog if not already loaded
+  ansible.builtin.include_tasks: load_software_catalog.yml
+  when: software_catalog is not defined
+
 - name: Print software catalog
   ansible.builtin.debug:
     var: software_catalog
