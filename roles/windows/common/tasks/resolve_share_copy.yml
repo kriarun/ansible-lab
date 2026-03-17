@@ -32,3 +32,5 @@
         filename: "{{ sw.filename }}"
       install:
         arguments: "{{ sw.install_args }}"        
+
+       path: "{{ sw.path | default(omit) }}"      

@@ -58,6 +58,17 @@
       - sw.install.type in ['exe', 'msi', 'zip']
     fail_msg: "Unsupported install type: {{ sw.install.type }}"
 
+- name: Validate PATH configuration
+  ansible.builtin.assert:
+    that:
+      - sw.path.entries is defined
+      - sw.path.entries | length > 0
+    fail_msg: >
+      PATH is enabled for '{{ software_key }}' but 'entries' is missing or empty.
+  when:
+    - sw.path is defined
+    - sw.path.enabled | default(false)  
+
 # Optional: normalize source_type for readability
 - name: Normalize source_type
   ansible.builtin.set_fact:

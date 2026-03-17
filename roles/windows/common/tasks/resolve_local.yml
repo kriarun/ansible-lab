@@ -33,3 +33,5 @@
         arguments: "{{ sw.install.arguments | default('') }}"
         check:
           path_exists: "{{ sw.install.check.path_exists }}"
+
+      path: "{{ sw.path | default(omit) }}"    
