@@ -1,0 +1,11 @@
+# roles/windows/common/tasks/add_path.yml
+- name: Add software paths to machine PATH
+  ansible.windows.win_path:
+    elements: "{{ pkg.path.entries }}"
+    scope: machine
+    state: present
+  when:
+    - pkg.path is defined
+    - pkg.path.enabled | default(false)
+    - pkg.path.entries is defined
+    - pkg.path.entries | length > 0

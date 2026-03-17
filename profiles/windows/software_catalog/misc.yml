@@ -41,3 +41,20 @@
       arguments: "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
       check:
         path_exists: "C:\\Program Files\\Python310\\python.exe"
+
+  maven:
+    source:
+      type: local
+      path: "D:\\ManualDrops"
+      filename: "apache-maven-3.9.9-bin.zip"
+
+    install:
+      type: zip
+      destination: "C:\\Tools\\apache-maven-3.9.9"
+      check:
+        path_exists: "C:\\Tools\\apache-maven-3.9.9\\bin\\mvn.cmd"
+
+    path:
+      enabled: true
+      entries:
+        - "C:\\Tools\\apache-maven-3.9.9\\bin"        

@@ -18,11 +18,11 @@
         _remove_roles: "{{ remove_roles | default([]) }}"
         final_roles: >-
           {{
-            (base_roles | default([]) + (team_roles | default([])))
+            (base_roles | default([]) + team_roles | default([]))
             | unique
-            | difference(remove_roles | default([]))
+            | reject('in', remove_roles | default([]))
+            | list
           }}
-
     - name: Debug composition
       debug:
         msg:

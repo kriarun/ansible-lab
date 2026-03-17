@@ -25,3 +25,9 @@
       loop: "{{ resolved_packages }}"
     - debug:
         msg: "================================================"
+
+- name: Add software paths
+  ansible.builtin.include_tasks: add_path.yml
+  loop: "{{ resolved_packages }}"
+  loop_control:
+    loop_var: pkg
