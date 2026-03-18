@@ -57,4 +57,33 @@
     path:
       enabled: true
       entries:
-        - "C:\\Tools\\apache-maven-3.9.9\\bin"        
+        - "C:\\Tools\\apache-maven-3.9.9\\bin"
+
+    env:
+      enabled: true
+      variables:
+        JAVA_HOME: /opt/jdk
+        MAVEN_HOME: /opt/maven    
+
+    registry:
+      enabled: true
+      entries:
+        - path: HKLM:\Software\MyCompany\ToolX
+          name: Enabled
+          type: dword
+          value: 1    
+
+  visual_studio:
+    source: shared
+    install:
+      type: exe
+      arguments: ...
+      check:
+        path_exists: C:\Program Files\Microsoft Visual Studio
+
+    certificate:
+      enabled: true
+      entries:
+        - file: \\share\vs\certificates\MicrosoftWindowsCodeSigningPCA2024.cer
+          store_location: LocalMachine
+          store_name: CA          

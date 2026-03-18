@@ -1,0 +1,8 @@
+- name: Ensure registry entries are present
+  ansible.windows.win_regedit:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+    data: "{{ item.value }}"
+    type: "{{ item.type }}"
+    state: present
+  loop: "{{ registry_entries }}"

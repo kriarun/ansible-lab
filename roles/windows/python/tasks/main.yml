@@ -31,3 +31,26 @@
   loop: "{{ resolved_packages }}"
   loop_control:
     loop_var: pkg
+
+- name: Add environment variables
+  include_tasks: common/add_env.yml
+  vars:
+    env_variables: "{{ item.env.variables }}"
+  when: item.env is defined and item.env.enabled | default(false)
+  loop: "{{ resolved_packages }}"    
+
+- name: Add registry entries
+  include_tasks: common/add_registry.yml
+  vars:
+    registry_entries: "{{ item.registry.entries }}"
+  when: item.registry is defined and item.registry.enabled | default(false)
+  loop: "{{ resolved_packages }}"
+
+- name: Add certificates
+  include_tasks: common/add_certificate.yml
+  vars:
+    certificate_entries: "{{ item.certificate.entries }}"
+  when:
+    - ansible_os_family == "Windows"
+    - item.certificate is defined
+    - item.certificate.enabled | default(false)  

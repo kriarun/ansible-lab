@@ -1,0 +1,7 @@
+- name: Ensure environment variables are present
+  lineinfile:
+    path: /etc/profile.d/custom_env.sh
+    create: yes
+    line: "export {{ item.key }}={{ item.value }}"
+    state: present
+  loop: "{{ env_variables | dict2items }}"

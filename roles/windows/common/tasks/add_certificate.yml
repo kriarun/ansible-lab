@@ -1,0 +1,7 @@
+- name: Ensure certificate is present in Windows certificate store
+  ansible.windows.win_certificate_store:
+    path: "{{ item.file }}"
+    state: present
+    store_location: "{{ item.store_location | default('LocalMachine') }}"
+    store_name: "{{ item.store_name }}"
+  loop: "{{ certificate_entries }}"
