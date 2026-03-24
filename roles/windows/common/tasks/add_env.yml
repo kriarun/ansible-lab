@@ -1,7 +1,7 @@
-- name: Ensure environment variables are present
-  lineinfile:
-    path: /etc/profile.d/custom_env.sh
-    create: yes
-    line: "export {{ item.key }}={{ item.value }}"
+- name: Ensure machine environment variables are present
+  ansible.windows.win_environment:
+    level: machine
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
     state: present
   loop: "{{ env_variables | dict2items }}"
