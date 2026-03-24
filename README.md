@@ -282,6 +282,17 @@ When contributing changes:
 
 ---
 
+# Contributor How-To
+
+For task-oriented contributor documentation and examples, see:
+
+* [docs/how-to/add-a-role.md](docs/how-to/add-a-role.md)
+* [docs/how-to/add-a-software-catalog-entry.md](docs/how-to/add-a-software-catalog-entry.md)
+* [docs/reference/software-catalog-examples.md](docs/reference/software-catalog-examples.md)
+* [docs/reference/machine-profile-examples.md](docs/reference/machine-profile-examples.md)
+
+---
+
 # Status
 
 This repository represents the **automation platform used to standardize machine provisioning** across environments.
