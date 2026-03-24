@@ -1,2 +1,8 @@
 machine_roles:
   - git
+
+machine_env:
+  enabled: true
+  variables:
+      APP_MODE: production
+      API_URL: https://alpha  

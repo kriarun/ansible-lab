@@ -27,27 +27,27 @@
         msg: "================================================"
 
 - name: Add software paths
-  ansible.builtin.include_tasks: add_path.yml
+  ansible.builtin.include_tasks: ../../common/tasks/add_path.yml
   loop: "{{ resolved_packages }}"
   loop_control:
     loop_var: pkg
 
 - name: Add environment variables
-  include_tasks: common/add_env.yml
+  ansible.builtin.include_tasks: ../../common/tasks/set_windows_env.yml
   vars:
-    env_variables: "{{ item.env.variables }}"
+    machine_env_variables: "{{ item.env.variables }}"
   when: item.env is defined and item.env.enabled | default(false)
   loop: "{{ resolved_packages }}"    
 
 - name: Add registry entries
-  include_tasks: common/add_registry.yml
+  ansible.builtin.include_tasks: ../../common/tasks/add_registry.yml
   vars:
     registry_entries: "{{ item.registry.entries }}"
   when: item.registry is defined and item.registry.enabled | default(false)
   loop: "{{ resolved_packages }}"
 
 - name: Add certificates
-  include_tasks: common/add_certificate.yml
+  ansible.builtin.include_tasks: ../../common/tasks/add_certificate.yml
   vars:
     certificate_entries: "{{ item.certificate.entries }}"
   when:

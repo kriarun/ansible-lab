@@ -1,0 +1,7 @@
+- name: Apply machine environment variables
+  ansible.builtin.include_tasks: ../../common/tasks/set_windows_env.yml
+  vars:
+    machine_env_variables: "{{ machine_env.variables }}"
+  when:
+    - machine_env is defined
+    - machine_env.enabled | default(false)

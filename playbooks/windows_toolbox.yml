@@ -3,7 +3,6 @@
   gather_facts: false
 
   vars_files:
-    - ../profiles/windows/software_catalog.yml
     - ../profiles/windows/toolbox/base.yml
 
   pre_tasks:

@@ -2,9 +2,6 @@
   hosts: uipath_orchestrator
   gather_facts: false
 
-  vars_files:
-    - ../profiles/windows/software_catalog.yml
-
   pre_tasks:
     - name: Load machine blueprint for orchestrator
       include_vars:
