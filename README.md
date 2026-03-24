@@ -314,6 +314,7 @@ When contributing changes:
 
 For task-oriented contributor documentation and examples, see:
 
+* [docs/architecture/arc42-architecture.md](docs/architecture/arc42-architecture.md)
 * [docs/how-to/add-a-role.md](docs/how-to/add-a-role.md)
 * [docs/how-to/add-a-software-catalog-entry.md](docs/how-to/add-a-software-catalog-entry.md)
 * [docs/reference/software-catalog-examples.md](docs/reference/software-catalog-examples.md)
