@@ -196,6 +196,34 @@ Execution should always target the appropriate inventory.
 
 ---
 
+# CI/CD Direction
+
+In real usage, these playbooks are expected to be triggered from a GitLab pipeline.
+
+The pipeline design is still evolving, but the current preferred direction is:
+
+- one GitLab job per playbook
+- one inventory target per pipeline run
+- clear separation between toolbox, UiPath, and Linux runner executions
+
+Examples of likely job-to-playbook mapping:
+
+- `windows_toolbox` job -> `playbooks/windows_toolbox.yml`
+- `windows_uipath` job -> `playbooks/windows_uipath.yml`
+- `linux_runner` job -> `playbooks/linux_runner.yml`
+
+This keeps pipeline execution simple and makes it easier to:
+
+- rerun one machine category without affecting others
+- review failures by playbook
+- introduce approvals or environment-specific controls later
+
+Detailed GitLab pipeline implementation is not finalized yet and can be added later once the execution model is confirmed.
+
+A starter pipeline draft is available in `.gitlab-ci.yml`.
+
+---
+
 # Adding a New Machine
 
 To provision a new machine type:

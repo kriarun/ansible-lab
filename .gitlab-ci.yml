@@ -1,0 +1,39 @@
+stages:
+  - validate
+  - deploy
+
+default:
+  image: python:3.11-slim
+  before_script:
+    - python --version
+    - pip install --no-cache-dir ansible
+    - ansible-playbook --version
+
+variables:
+  ANSIBLE_CONFIG: ansible.cfg
+  INVENTORY: inventories/lab
+
+validate:syntax:
+  stage: validate
+  script:
+    - ansible-playbook playbooks/windows_toolbox.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows_uipath.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/linux_runner.yml -i "$INVENTORY" --syntax-check
+
+deploy:windows_toolbox:
+  stage: deploy
+  script:
+    - ansible-playbook playbooks/windows_toolbox.yml -i "$INVENTORY"
+  when: manual
+
+deploy:windows_uipath:
+  stage: deploy
+  script:
+    - ansible-playbook playbooks/windows_uipath.yml -i "$INVENTORY"
+  when: manual
+
+deploy:linux_runner:
+  stage: deploy
+  script:
+    - ansible-playbook playbooks/linux_runner.yml -i "$INVENTORY"
+  when: manual
