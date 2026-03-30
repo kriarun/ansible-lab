@@ -1,0 +1,56 @@
+---
+- name: UiPath | Technical validation stage banner
+  ansible.builtin.debug:
+    msg:
+      - "Stage 7 - technical validation"
+      - "Validate service health, app endpoint, Elasticsearch, and final DB access."
+  when: debug_mode | default(false) | bool
+
+- name: UiPath | Validate final application endpoint
+  ansible.windows.win_uri:
+    url: "{{ uipath_validation.app_url | default('http://localhost') }}"
+    method: GET
+    return_content: true
+    validate_certs: "{{ uipath_validation.app_validate_certs | default(false) }}"
+    status_code: [200]
+  register: uipath_final_app_health
+
+- name: UiPath | Validate final Elasticsearch health endpoint
+  ansible.windows.win_uri:
+    url: "{{ uipath_runtime.elastic_url }}{{ uipath_validation.elastic_health_path | default('/_cluster/health') }}"
+    method: GET
+    return_content: true
+    validate_certs: "{{ uipath_runtime.elastic_validate_certs | default(true) }}"
+    status_code: [200]
+  register: uipath_final_elastic_health
+
+- name: UiPath | Validate final runtime DB access
+  ansible.windows.win_powershell:
+    script: |
+      $server = "{{ uipath_runtime.db_server }}"
+      $db = "{{ uipath_runtime.db_name }}"
+      $connString = "Server=$server;Database=$db;Integrated Security=True;TrustServerCertificate=True"
+      $conn = New-Object System.Data.SqlClient.SqlConnection $connString
+      try {
+        $conn.Open()
+        $cmd = $conn.CreateCommand()
+        $cmd.CommandText = "SELECT DB_NAME()"
+        $result = $cmd.ExecuteScalar()
+        if ($result -ne "{{ uipath_runtime.db_name }}") {
+          throw "Connected to unexpected DB: $result"
+        }
+        'FINAL_RUNTIME_DB_OK'
+      }
+      finally {
+        $conn.Close()
+      }
+  register: uipath_final_db_check
+  changed_when: false
+
+- name: UiPath | Confirm final technical validation
+  ansible.builtin.assert:
+    that:
+      - uipath_final_app_health.status_code == 200
+      - uipath_final_elastic_health.status_code == 200
+      - uipath_final_db_check.stdout is search('FINAL_RUNTIME_DB_OK')
+    fail_msg: "UiPath technical validation failed."

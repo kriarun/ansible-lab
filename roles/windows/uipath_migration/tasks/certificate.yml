@@ -1,0 +1,37 @@
+- name: Read certificate info
+  ansible.windows.win_certificate_info:
+    thumbprint: "{{ uipath_cert.thumbprint }}"
+    store_name: "{{ uipath_cert.store_name }}"
+    store_location: "{{ uipath_cert.store_location }}"
+  register: uipath_cert_info
+
+- name: Import certificate if missing
+  ansible.windows.win_certificate_store:
+    path: "{{ uipath_cert.pfx_path }}"
+    password: "{{ uipath_cert.pfx_password }}"
+    state: present
+    store_location: "{{ uipath_cert.store_location }}"
+    store_name: "{{ uipath_cert.store_name }}"
+  when:
+    - not uipath_cert_info.exists
+    - uipath_cert.pfx_path | length > 0
+  no_log: true
+
+- name: Re-read certificate info
+  ansible.windows.win_certificate_info:
+    thumbprint: "{{ uipath_cert.thumbprint }}"
+    store_name: "{{ uipath_cert.store_name }}"
+    store_location: "{{ uipath_cert.store_location }}"
+  register: uipath_cert_info_final
+
+- name: Assert certificate exists
+  ansible.builtin.assert:
+    that:
+      - uipath_cert_info_final.exists
+    fail_msg: "Required certificate not found."
+
+- name: Assert certificate is not expired
+  ansible.builtin.assert:
+    that:
+      - uipath_cert_info_final.not_after is defined
+    fail_msg: "Certificate expiry could not be determined."

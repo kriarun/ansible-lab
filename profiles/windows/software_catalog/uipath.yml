@@ -1,0 +1,54 @@
+dotnet_hosting_bundle:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "dotnet-hosting-bundle.exe"
+  install:
+    type: exe
+    arguments: "/quiet /norestart"
+    check:
+      path_exists: "C:\\Program Files\\dotnet\\dotnet.exe"
+
+iis_url_rewrite:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "rewrite_amd64_en-US.msi"
+  install:
+    type: msi
+    arguments: "/qn"
+    check:
+      path_exists: "C:\\Program Files\\IIS\\URL Rewrite\\rewrite.dll"
+
+web_deploy:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "WebDeploy_amd64_en-US.msi"
+  install:
+    type: msi
+    arguments: "/qn"
+    check:
+      path_exists: "C:\\Program Files\\IIS\\Microsoft Web Deploy V3\\msdeploy.exe"
+
+aspnetcore_hosting_bundle:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "dotnet-hosting-bundle.exe"
+  install:
+    type: exe
+    arguments: "/quiet /norestart"
+    check:
+      path_exists: "C:\\Program Files\\IIS\\Asp.Net Core Module\\V2\\aspnetcorev2.dll"
+
+uipath_orchestrator_installer:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "UiPathOrchestrator.msi"
+  install:
+    type: msi
+    arguments: "/qn"
+    check:
+      path_exists: "C:\\Program Files\\UiPath\\Orchestrator"

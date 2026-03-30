@@ -1,0 +1,27 @@
+---
+- name: Validate UiPath migration inputs
+  ansible.builtin.assert:
+    that:
+      - uipath_prereq_packages is defined
+      - uipath_prereq_packages is iterable
+      - uipath_installer_package is defined
+      - uipath_bootstrap is defined
+      - uipath_runtime is defined
+      - uipath_runtime_override is defined
+    fail_msg: >-
+      UiPath migration profile variables are incomplete. Expected:
+      uipath_prereq_packages, uipath_installer_package, uipath_bootstrap,
+      uipath_runtime, and uipath_runtime_override.
+
+- name: Execute UiPath migration stages
+  ansible.builtin.include_tasks: "{{ item }}"
+  loop:
+    - certificate.yml
+    - prereqs.yml
+    - iis.yml
+    - external_validation.yml
+    - bootstrap_install.yml
+    - runtime_override.yml
+    - technical_validation.yml
+  loop_control:
+    label: "{{ item }}"

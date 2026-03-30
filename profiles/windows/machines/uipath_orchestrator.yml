@@ -1,8 +1,56 @@
 machine_roles:
-  #- python
-  - git
-  #- vscode
+  - uipath_migration
+  - machine_configuration
 
+uipath_prereq_packages:
+  - dotnet_hosting_bundle
+  - iis_url_rewrite
+  - web_deploy
+  - aspnetcore_hosting_bundle
+
+uipath_installer_package: uipath_orchestrator_installer
+
+uipath_cert:
+  thumbprint: "{{ lookup('env', 'UIPATH_CERT_THUMBPRINT') }}"
+  store_location: LocalMachine
+  store_name: My
+  pfx_path: "{{ lookup('env', 'UIPATH_CERT_PFX_PATH') | default('', true) }}"
+  pfx_password: "{{ lookup('env', 'UIPATH_CERT_PFX_PASSWORD') | default('', true) }}"
+
+uipath_bootstrap:
+  db_server: "{{ lookup('env', 'UIPATH_BOOTSTRAP_DB_SERVER') }}"
+  db_name: "{{ lookup('env', 'UIPATH_BOOTSTRAP_DB_NAME') }}"
+  db_auth: windows
+
+uipath_runtime:
+  db_server: "{{ lookup('env', 'UIPATH_RUNTIME_DB_SERVER') }}"
+  db_name: "{{ lookup('env', 'UIPATH_RUNTIME_DB_NAME') }}"
+  db_auth: windows
+  elastic_url: "{{ lookup('env', 'UIPATH_ELASTIC_URL') }}"
+  elastic_validate_certs: false
+
+uipath_runtime_override:
+  preference: env_first
+  allow_config_fallback: true
+  config_file: "C:\\Program Files\\UiPath\\Orchestrator\\appsettings.json"
+
+uipath_validation:
+  app_url: "http://localhost/"
+  app_validate_certs: false
+  elastic_health_path: "/_cluster/health"
+
+uipath_iis_service_name: W3SVC
+uipath_install_check_path: "C:\\Program Files\\UiPath\\Orchestrator"
+uipath_log_dir: "C:\\Temp\\ansible\\uipath"
+
+machine_env:
+  enabled: true
+  variables:
+    UIPATH_DB_SERVER: "{{ uipath_runtime.db_server }}"
+    UIPATH_DB_NAME: "{{ uipath_runtime.db_name }}"
+    UIPATH_ELASTIC_URL: "{{ uipath_runtime.elastic_url }}"
+
+# keep lab defaults available for side-by-side role testing
 python_packages:
   - python_3_11_7
   - python_3_12_1

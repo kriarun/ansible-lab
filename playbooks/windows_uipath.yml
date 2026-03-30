@@ -1,4 +1,4 @@
-- name: Windows UiPath Machines (Phase 1 Debug)
+- name: Windows UiPath Machines
   hosts: uipath_orchestrator
   gather_facts: false
 
@@ -33,7 +33,7 @@
           final_roles: "{{ final_roles }}"
 
   tasks:
-    - name: Execute final roles (debug-only roles for now)
+    - name: Execute final roles
       include_role:
         name: "windows/{{ item }}"
       loop: "{{ final_roles }}"

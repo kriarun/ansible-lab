@@ -1,0 +1,59 @@
+---
+- name: UiPath | External validation stage banner
+  ansible.builtin.debug:
+    msg:
+      - "Stage 4 - external validation"
+      - "Validate SQL Windows-auth reachability and Elasticsearch endpoint access."
+  when: debug_mode | default(false) | bool
+
+- name: UiPath | Validate runtime SQL inputs
+  ansible.builtin.assert:
+    that:
+      - uipath_runtime.db_server is defined
+      - uipath_runtime.db_name is defined
+      - uipath_runtime.db_server | length > 0
+      - uipath_runtime.db_name | length > 0
+    fail_msg: "uipath_runtime.db_server and uipath_runtime.db_name are mandatory."
+
+- name: UiPath | Validate runtime Elasticsearch input
+  ansible.builtin.assert:
+    that:
+      - uipath_runtime.elastic_url is defined
+      - uipath_runtime.elastic_url | length > 0
+    fail_msg: "uipath_runtime.elastic_url is mandatory."
+
+- name: UiPath | Wait for SQL TCP port
+  ansible.windows.win_wait_for:
+    host: "{{ uipath_runtime.db_server }}"
+    port: "{{ uipath_runtime.db_port | default(1433) }}"
+    timeout: 15
+
+- name: UiPath | Validate Elasticsearch reachability
+  ansible.windows.win_uri:
+    url: "{{ uipath_runtime.elastic_url }}{{ uipath_validation.elastic_health_path | default('/_cluster/health') }}"
+    method: GET
+    return_content: true
+    validate_certs: "{{ uipath_runtime.elastic_validate_certs | default(true) }}"
+    status_code: [200]
+  register: uipath_elastic_check
+
+- name: UiPath | Validate SQL Windows authentication with simple query
+  ansible.windows.win_powershell:
+    script: |
+      $server = "{{ uipath_runtime.db_server }}"
+      $db = "{{ uipath_runtime.db_name }}"
+      $connString = "Server=$server;Database=$db;Integrated Security=True;TrustServerCertificate=True"
+      $conn = New-Object System.Data.SqlClient.SqlConnection $connString
+      try {
+        $conn.Open()
+        $cmd = $conn.CreateCommand()
+        $cmd.CommandText = "SELECT 1"
+        $result = $cmd.ExecuteScalar()
+        if ($result -ne 1) { throw "Unexpected SQL validation result." }
+        'SQL_RUNTIME_OK'
+      }
+      finally {
+        $conn.Close()
+      }
+  register: uipath_sql_check
+  changed_when: false
