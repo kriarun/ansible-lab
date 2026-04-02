@@ -15,14 +15,26 @@
   vars:
     software_key: "{{ uipath_installer_package }}"
 
-- name: UiPath | Build bootstrap installer arguments
+- name: UiPath | Build installer arguments (subject mode)
   ansible.builtin.set_fact:
-    uipath_bootstrap_install_arguments: >-
-      {{ resolved_packages[0].install.arguments | default('') }}
-      BOOTSTRAP_DB_SERVER={{ uipath_bootstrap.db_server }}
-      BOOTSTRAP_DB_NAME={{ uipath_bootstrap.db_name }}
-      BOOTSTRAP_DB_AUTH={{ uipath_bootstrap.db_auth | default('windows') }}
-      INSTALL_LOG={{ uipath_log_dir | default('C:\\Temp\\ansible\\uipath') }}\\bootstrap-install.log
+    uipath_install_arguments: >-
+      /passive /norestart
+      ADDLOCAL=OrchestratorFeature,IdentityFeature,TestAutomationFeature
+      CERTIFICATE_SUBJECT={{ uipath_certificate.subject }}
+      IS_CERTIFICATE_SUBJECT=1
+      DB_SERVER_NAME={{ uipath_db.server }}
+      DB_DATABASE_NAME={{ uipath_db.name }}
+      DB_AUTHENTICATION_MODE={{ uipath_db.auth | default('Windows') }}
+      APPPOOL_IDENTITY_TYPE={{ uipath_apppool.identity_type }}
+      APPPOOL_USER_NAME={{ uipath_apppool.username }}
+      APPPOOL_PASSWORD={{ uipath_apppool.password }}
+      HOSTADMIN_PASSWORD={{ uipath_admin.host_password }}
+      HOSTADMIN_PASSWORD_CONFIRM={{ uipath_admin.host_password }}
+      DEFAULTTENANTADMIN_PASSWORD={{ uipath_admin.tenant_password }}
+      DEFAULTTENANTADMIN_PASSWORD_CONFIRM={{ uipath_admin.tenant_password }}
+      TA_DATABASE_NAME={{ uipath_ta.db_name }}
+      TA_DB_SERVER_NAME={{ uipath_ta.db_server }}
+      INSTALL_LOG={{ uipath_log_dir | default('C:\\Temp\\ansible\\uipath') }}\\install.log
 
 - name: UiPath | Execute bootstrap installer
   ansible.windows.win_package:
