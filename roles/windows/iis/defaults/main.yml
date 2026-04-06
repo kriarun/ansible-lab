@@ -1,0 +1,4 @@
+---
+iis_features:
+  - Web-Server
+iis_service_name: W3SVC

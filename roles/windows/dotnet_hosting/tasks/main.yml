@@ -1,0 +1,17 @@
+---
+- name: Initialize resolved dotnet package list
+  ansible.builtin.set_fact:
+    resolved_packages: []
+
+- name: Resolve dotnet hosting packages
+  ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+  loop: "{{ dotnet_hosting_packages | default([]) }}"
+  loop_control:
+    loop_var: software_key
+
+- name: Execute dotnet hosting installation plan
+  ansible.builtin.include_tasks: ../../common/tasks/execute_plan.yml
+  loop: "{{ resolved_packages }}"
+  loop_control:
+    loop_var: pkg
+  when: resolved_packages | length > 0

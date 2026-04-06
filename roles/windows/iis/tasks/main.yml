@@ -1,0 +1,25 @@
+---
+- name: Install required IIS features
+  ansible.windows.win_feature:
+    name: "{{ iis_features }}"
+    state: present
+    include_management_tools: true
+    include_sub_features: true
+
+- name: Check IIS service presence after feature install
+  ansible.windows.win_service_info:
+    name: "{{ iis_service_name }}"
+  register: iis_service
+
+- name: Fail if IIS service is still unavailable
+  ansible.builtin.assert:
+    that:
+      - iis_service.services | length > 0
+    fail_msg: >-
+      IIS service {{ iis_service_name }} was not found even after IIS feature installation.
+
+- name: Ensure IIS service is running
+  ansible.windows.win_service:
+    name: "{{ iis_service_name }}"
+    state: started
+    start_mode: auto

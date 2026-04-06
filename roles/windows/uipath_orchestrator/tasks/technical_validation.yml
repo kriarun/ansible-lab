@@ -2,7 +2,7 @@
 - name: UiPath | Technical validation stage banner
   ansible.builtin.debug:
     msg:
-      - "Stage 7 - technical validation"
+      - "Stage 5 - technical validation"
       - "Validate service health, app endpoint, Elasticsearch, and final DB access."
   when: debug_mode | default(false) | bool
 

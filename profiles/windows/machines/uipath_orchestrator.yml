@@ -1,14 +1,19 @@
 machine_roles:
-  - uipath_migration
+  - certificate
+  - iis
+  - dotnet_hosting
+  - uipath_orchestrator
   - machine_configuration
 
-uipath_prereq_packages:
+dotnet_hosting_packages:
   - dotnet_hosting_bundle
-  - iis_url_rewrite
-  - web_deploy
   - aspnetcore_hosting_bundle
 
-uipath_installer_package: uipath_orchestrator_installer
+uipath_prereq_packages:
+  - iis_url_rewrite
+  - web_deploy
+
+uipath_orchestrator_package: uipath_orchestrator_installer
 
 uipath_cert:
   thumbprint: "{{ lookup('env', 'UIPATH_CERT_THUMBPRINT') }}"
@@ -17,7 +22,7 @@ uipath_cert:
   pfx_path: "{{ lookup('env', 'UIPATH_CERT_PFX_PATH') | default('', true) }}"
   pfx_password: "{{ lookup('env', 'UIPATH_CERT_PFX_PASSWORD') | default('', true) }}"
 
-uipath_bootstrap:
+uipath_orchestrator_install:
   db_server: "{{ lookup('env', 'UIPATH_BOOTSTRAP_DB_SERVER') }}"
   db_name: "{{ lookup('env', 'UIPATH_BOOTSTRAP_DB_NAME') }}"
   db_auth: windows
@@ -39,16 +44,13 @@ uipath_validation:
   app_validate_certs: false
   elastic_health_path: "/_cluster/health"
 
-uipath_iis_service_name: W3SVC
+iis_features:
+  - Web-Server
+
+iis_service_name: W3SVC
+uipath_iis_service_name: "{{ iis_service_name }}"
 uipath_install_check_path: "C:\\Program Files\\UiPath\\Orchestrator"
 uipath_log_dir: "C:\\Temp\\ansible\\uipath"
-
-machine_env:
-  enabled: true
-  variables:
-    UIPATH_DB_SERVER: "{{ uipath_runtime.db_server }}"
-    UIPATH_DB_NAME: "{{ uipath_runtime.db_name }}"
-    UIPATH_ELASTIC_URL: "{{ uipath_runtime.elastic_url }}"
 
 # keep lab defaults available for side-by-side role testing
 python_packages:

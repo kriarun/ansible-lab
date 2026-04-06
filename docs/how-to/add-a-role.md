@@ -69,7 +69,7 @@ base_roles:
 
 ```yaml
 team_roles:
-  - dotnet
+  - dotnet_hosting
 ```
 
 ```yaml

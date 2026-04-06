@@ -1,0 +1,21 @@
+---
+- name: Validate UiPath orchestrator inputs
+  ansible.builtin.assert:
+    that:
+      - uipath_installer_package is defined or uipath_orchestrator_package is defined
+      - uipath_orchestrator_install is defined or uipath_bootstrap is defined
+      - uipath_runtime is defined
+    fail_msg: >-
+      UiPath orchestrator variables are incomplete. Expected installer package,
+      install DB settings, and uipath_runtime.
+
+- name: Execute UiPath orchestrator stages
+  ansible.builtin.include_tasks: "{{ item }}"
+  loop:
+    - external_validation.yml
+    - preinstall_validation.yml
+    - install.yml
+    - runtime_override.yml
+    - technical_validation.yml
+  loop_control:
+    label: "{{ item }}"

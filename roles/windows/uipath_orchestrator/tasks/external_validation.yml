@@ -2,7 +2,7 @@
 - name: UiPath | External validation stage banner
   ansible.builtin.debug:
     msg:
-      - "Stage 4 - external validation"
+      - "Stage 1 - external validation"
       - "Validate SQL Windows-auth reachability and Elasticsearch endpoint access."
   when: debug_mode | default(false) | bool
 

@@ -2,7 +2,7 @@
 - name: UiPath | Runtime override stage banner
   ansible.builtin.debug:
     msg:
-      - "Stage 6 - runtime override"
+      - "Stage 4 - runtime override"
       - "Prefer machine environment variables first, then optionally fall back to config mutation."
   when: debug_mode | default(false) | bool
 
@@ -17,7 +17,10 @@
   ansible.builtin.include_tasks: ../../common/tasks/set_windows_env.yml
   vars:
     machine_env_variables: "{{ uipath_runtime_env_map }}"
-  when: uipath_runtime_override.preference | default('env_first') == 'env_first'
+  when:
+    - uipath_runtime_override is defined
+    - uipath_runtime_override.enabled | default(true)
+    - uipath_runtime_override.preference | default('env_first') == 'env_first'
 
 - name: UiPath | Validate application health after environment override
   ansible.windows.win_uri:
@@ -28,6 +31,9 @@
     status_code: [200]
   register: uipath_app_health_after_env
   ignore_errors: true
+  when:
+    - uipath_runtime_override is defined
+    - uipath_runtime_override.enabled | default(true)
 
 - name: UiPath | Decide whether config fallback is needed
   ansible.builtin.set_fact:
@@ -36,6 +42,9 @@
         (uipath_app_health_after_env is failed)
         and (uipath_runtime_override.allow_config_fallback | default(true))
       }}
+  when:
+    - uipath_runtime_override is defined
+    - uipath_runtime_override.enabled | default(true)
 
 - name: UiPath | Apply config fallback placeholder
   ansible.windows.win_powershell:
@@ -45,13 +54,13 @@
         throw "Config fallback file not found: $path"
       }
 
-      # Placeholder for lab scaffolding.
-      # In the organization repo, replace this with the exact UiPath-supported
-      # runtime configuration mutation for DB + Elasticsearch settings.
       "CONFIG_FALLBACK_PLACEHOLDER"
   register: uipath_config_fallback_result
   changed_when: false
-  when: uipath_config_fallback_needed | bool
+  when:
+    - uipath_runtime_override is defined
+    - uipath_runtime_override.enabled | default(true)
+    - uipath_config_fallback_needed | bool
 
 - name: UiPath | Assert runtime override stage reached a valid state
   ansible.builtin.assert:
@@ -63,3 +72,6 @@
     fail_msg: >-
       Runtime override failed. Environment-based override was not enough and
       config fallback did not complete successfully.
+  when:
+    - uipath_runtime_override is defined
+    - uipath_runtime_override.enabled | default(true)
