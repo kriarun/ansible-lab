@@ -2,8 +2,8 @@
 - name: UiPath | External validation stage banner
   ansible.builtin.debug:
     msg:
-      - "Stage 1 - external validation"
-      - "Validate SQL Windows-auth reachability and Elasticsearch endpoint access."
+      - "Stage 4 - external validation"
+      - "Validate runtime database availability and Elasticsearch endpoint access."
   when: debug_mode | default(false) | bool
 
 - name: UiPath | Validate runtime SQL inputs
@@ -37,7 +37,7 @@
     status_code: [200]
   register: uipath_elastic_check
 
-- name: UiPath | Validate SQL Windows authentication with simple query
+- name: UiPath | Validate runtime DB exists and is reachable
   ansible.windows.win_powershell:
     script: |
       $server = "{{ uipath_runtime.db_server }}"
@@ -47,13 +47,22 @@
       try {
         $conn.Open()
         $cmd = $conn.CreateCommand()
-        $cmd.CommandText = "SELECT 1"
+        $cmd.CommandText = "SELECT DB_NAME()"
         $result = $cmd.ExecuteScalar()
-        if ($result -ne 1) { throw "Unexpected SQL validation result." }
-        'SQL_RUNTIME_OK'
+        if ($result -ne "{{ uipath_runtime.db_name }}") {
+          throw "Connected to unexpected DB: $result"
+        }
+        'EXTERNAL_RUNTIME_DB_OK'
       }
       finally {
         $conn.Close()
       }
   register: uipath_sql_check
   changed_when: false
+
+- name: UiPath | Confirm external validation
+  ansible.builtin.assert:
+    that:
+      - uipath_elastic_check.status_code == 200
+      - uipath_sql_check.stdout is search('EXTERNAL_RUNTIME_DB_OK')
+    fail_msg: "UiPath external validation failed."

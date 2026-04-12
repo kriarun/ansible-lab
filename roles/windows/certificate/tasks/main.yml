@@ -1,28 +1,32 @@
 ---
+- name: Normalize certificate input variables
+  ansible.builtin.set_fact:
+    certificate_config: "{{ ssl_certificate | default(uipath_cert) }}"
+
 - name: Read certificate info
   ansible.windows.win_certificate_info:
-    thumbprint: "{{ uipath_cert.thumbprint }}"
-    store_name: "{{ uipath_cert.store_name }}"
-    store_location: "{{ uipath_cert.store_location }}"
+    thumbprint: "{{ certificate_config.thumbprint }}"
+    store_name: "{{ certificate_config.store_name }}"
+    store_location: "{{ certificate_config.store_location }}"
   register: uipath_cert_info
 
 - name: Import certificate if missing
   ansible.windows.win_certificate_store:
-    path: "{{ uipath_cert.pfx_path }}"
-    password: "{{ uipath_cert.pfx_password }}"
+    path: "{{ certificate_config.pfx_path }}"
+    password: "{{ certificate_config.pfx_password }}"
     state: present
-    store_location: "{{ uipath_cert.store_location }}"
-    store_name: "{{ uipath_cert.store_name }}"
+    store_location: "{{ certificate_config.store_location }}"
+    store_name: "{{ certificate_config.store_name }}"
   when:
     - not uipath_cert_info.exists
-    - uipath_cert.pfx_path | length > 0
+    - certificate_config.pfx_path | length > 0
   no_log: true
 
 - name: Re-read certificate info
   ansible.windows.win_certificate_info:
-    thumbprint: "{{ uipath_cert.thumbprint }}"
-    store_name: "{{ uipath_cert.store_name }}"
-    store_location: "{{ uipath_cert.store_location }}"
+    thumbprint: "{{ certificate_config.thumbprint }}"
+    store_name: "{{ certificate_config.store_name }}"
+    store_location: "{{ certificate_config.store_location }}"
   register: uipath_cert_info_final
 
 - name: Assert certificate exists

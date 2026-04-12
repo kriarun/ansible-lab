@@ -1,0 +1,17 @@
+---
+- name: Initialize resolved Microsoft Web Deploy package list
+  ansible.builtin.set_fact:
+    resolved_packages: []
+
+- name: Resolve Microsoft Web Deploy packages
+  ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+  loop: "{{ microsoft_web_deploy_packages | default([]) }}"
+  loop_control:
+    loop_var: software_key
+
+- name: Execute Microsoft Web Deploy installation plan
+  ansible.builtin.include_tasks: ../../common/tasks/execute_plan.yml
+  loop: "{{ resolved_packages }}"
+  loop_control:
+    loop_var: pkg
+  when: resolved_packages | length > 0

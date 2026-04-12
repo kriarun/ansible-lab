@@ -1,0 +1,63 @@
+---
+- name: Validate UiPath orchestrator migration inputs
+  ansible.builtin.assert:
+    that:
+      - uipath_orchestrator_packages is defined
+      - uipath_orchestrator_packages | length > 0
+      - uipath_runtime is defined
+      - ssl_certificate is defined
+      - uipath_orchestrator_install_config is defined
+    fail_msg: >-
+      UiPath orchestrator migration variables are incomplete. Expected
+      uipath_orchestrator_packages, uipath_runtime, ssl_certificate,
+      and uipath_orchestrator_install_config.
+
+- name: Normalize UiPath inventory variables for role tasks
+  ansible.builtin.set_fact:
+    uipath_cert: "{{ ssl_certificate }}"
+    uipath_certificate: "{{ ssl_certificate }}"
+    uipath_db:
+      server: "{{ uipath_orchestrator_install_config.default_database_server_name }}"
+      name: "{{ uipath_orchestrator_install_config.default_database_name }}"
+      auth: "{{ uipath_orchestrator_install_config.database_authentication_mode | default('WINDOWS') }}"
+    uipath_ta:
+      db_server: "{{ uipath_orchestrator_install_config.testauomtation_database_server_name }}"
+      db_name: "{{ uipath_orchestrator_install_config.testauomtation_database_name }}"
+    uipath_apppool:
+      identity_type: "{{ uipath_orchestrator_install_config.application_pool_identity_type }}"
+      username: "{{ uipath_orchestrator_install_config.application_pool_user_name }}"
+      password: "{{ uipath_orchestrator_install_config.application_pool_password }}"
+    uipath_admin:
+      host_password: "{{ uipath_orchestrator_install_config.hostadmin_password }}"
+      tenant_password: "{{ uipath_orchestrator_install_config.default_tenantadmin_password }}"
+
+- name: Execute UiPath orchestrator migration stages
+  ansible.builtin.include_tasks: "{{ item }}"
+  loop:
+    - fetch_certificate.yml
+    - external_validation.yml
+    - install_orchestrator.yml
+  loop_control:
+    label: "{{ item }}"
+
+- name: Stop IIS before UiPath configuration changes
+  ansible.builtin.include_tasks: iis.yml
+  vars:
+    uipath_iis_state: stopped
+
+- name: Configure UiPath orchestrator DLL settings
+  ansible.builtin.include_tasks: uipath_orchestrator_dll_configuration.yml
+
+- name: Configure UiPath appsettings production file
+  ansible.builtin.include_tasks: appsettings_production_configuration.yml
+
+- name: Configure UiPath resource catalog appsettings production file
+  ansible.builtin.include_tasks: resourcecatalog_appsettings_production_configuration.yml
+
+- name: Configure UiPath webhooks appsettings production file
+  ansible.builtin.include_tasks: webhooks_appsettings_production_configuration.yml
+
+- name: Start IIS after UiPath configuration changes
+  ansible.builtin.include_tasks: iis.yml
+  vars:
+    uipath_iis_state: started

@@ -1,0 +1,17 @@
+---
+- name: Initialize resolved IIS URL Rewrite package list
+  ansible.builtin.set_fact:
+    resolved_packages: []
+
+- name: Resolve IIS URL Rewrite packages
+  ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+  loop: "{{ iis_url_rewrite_packages | default([]) }}"
+  loop_control:
+    loop_var: software_key
+
+- name: Execute IIS URL Rewrite installation plan
+  ansible.builtin.include_tasks: ../../common/tasks/execute_plan.yml
+  loop: "{{ resolved_packages }}"
+  loop_control:
+    loop_var: pkg
+  when: resolved_packages | length > 0

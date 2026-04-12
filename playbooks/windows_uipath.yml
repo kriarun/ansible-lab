@@ -8,11 +8,6 @@
         file: "../profiles/windows/machines/uipath_orchestrator.yml"
       when: "'uipath_orchestrator' in group_names"
 
-    - name: Load machine config for orchestrator
-      include_vars:
-        file: "../profiles/windows/machines/uipath_orchestrator_config.yml"
-      when: "'uipath_orchestrator' in group_names"
-
     #- name: Load machine blueprint for test manager
     #  include_vars:
     #    file: "../profiles/windows/machines/uipath_test_manager.yml"
