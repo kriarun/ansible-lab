@@ -20,7 +20,7 @@
     software_catalog: >-
       {{
         software_catalog
-        | combine((lookup('file', item.path) | from_yaml), recursive=True)
+        | combine((lookup('ansible.builtin.template', item.path) | from_yaml), recursive=True)
       }}
   loop: "{{ _catalog_files.files | sort(attribute='path') }}"
   loop_control:
