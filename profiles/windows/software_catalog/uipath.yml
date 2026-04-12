@@ -95,21 +95,21 @@ uipath_orchestrator_2024.10.1:
     type: msi
     arguments : >-
       /passive /norestart
-      ADDLOCAL=OrchestratorFeature,IdentityFeature,TestAutomationFeature
-      CERTIFICATE_SUBJECT={{ uipath_certificate.subject }}
+      ADDLOCAL={{ uipath_orchestrator_install_config.features | default('OrchestratorFeature,IdentityFeature,TestAutomationFeature') }}
+      CERTIFICATE_SUBJECT={{ ssl_certificate.subject }}
       IS_CERTIFICATE_SUBJECT=1
-      DB_SERVER_NAME={{ uipath_db.server }}
-      DB_DATABASE_NAME={{ uipath_db.name }}
-      DB_AUTHENTICATION_MODE={{ uipath_db.auth | default('Windows') }}
-      APPPOOL_IDENTITY_TYPE={{ uipath_apppool.identity_type }}
-      APPPOOL_USER_NAME={{ uipath_apppool.username }}
-      APPPOOL_PASSWORD={{ uipath_apppool.password }}
-      HOSTADMIN_PASSWORD={{ uipath_admin.host_password }}
-      HOSTADMIN_PASSWORD_CONFIRM={{ uipath_admin.host_password }}
-      DEFAULTTENANTADMIN_PASSWORD={{ uipath_admin.tenant_password }}
-      DEFAULTTENANTADMIN_PASSWORD_CONFIRM={{ uipath_admin.tenant_password }}
-      TA_DATABASE_NAME={{ uipath_ta.db_name }}
-      TA_DB_SERVER_NAME={{ uipath_ta.db_server }}
+      DB_SERVER_NAME={{ uipath_orchestrator_install_config.default_database_server_name }}
+      DB_DATABASE_NAME={{ uipath_orchestrator_install_config.default_database_name }}
+      DB_AUTHENTICATION_MODE={{ uipath_orchestrator_install_config.database_authentication_mode | default('WINDOWS') }}
+      APPPOOL_IDENTITY_TYPE={{ uipath_orchestrator_install_config.application_pool_identity_type }}
+      APPPOOL_USER_NAME={{ uipath_orchestrator_install_config.application_pool_user_name }}
+      APPPOOL_PASSWORD={{ uipath_orchestrator_install_config.application_pool_password }}
+      HOSTADMIN_PASSWORD={{ uipath_orchestrator_install_config.hostadmin_password }}
+      HOSTADMIN_PASSWORD_CONFIRM={{ uipath_orchestrator_install_config.hostadmin_password_confirm | default(uipath_orchestrator_install_config.hostadmin_password) }}
+      DEFAULTTENANTADMIN_PASSWORD={{ uipath_orchestrator_install_config.default_tenantadmin_password }}
+      DEFAULTTENANTADMIN_PASSWORD_CONFIRM={{ uipath_orchestrator_install_config.default_tenantadmin_password_confirm | default(uipath_orchestrator_install_config.default_tenantadmin_password) }}
+      TA_DATABASE_NAME={{ uipath_orchestrator_install_config.testauomtation_database_name }}
+      TA_DB_SERVER_NAME={{ uipath_orchestrator_install_config.testauomtation_database_server_name }}
       INSTALL_LOG={{ uipath_log_dir | default('C:\\Temp\\ansible\\uipath') }}\\install.log
 
     check:

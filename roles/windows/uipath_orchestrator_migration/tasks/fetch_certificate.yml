@@ -1,8 +1,8 @@
 ---
 - name: Read certificates from LocalMachine store
   ansible.windows.win_certificate_info:
-    store_location: "{{ uipath_cert.store_location }}"
-    store_name: "{{ uipath_cert.store_name }}"
+    store_location: "{{ ssl_certificate.store_location }}"
+    store_name: "{{ ssl_certificate.store_name }}"
   register: uipath_certificates_info
 
 - name: Filter certificates matching configured subject
@@ -10,7 +10,7 @@
     uipath_matching_certificates: >-
       {{
         uipath_certificates_info.certificates
-        | selectattr('subject', 'search', uipath_cert.subject)
+        | selectattr('subject', 'search', ssl_certificate.subject)
         | list
       }}
 
@@ -44,11 +44,21 @@
       - uipath_discovered_thumbprint | length > 0
     fail_msg: >-
       No valid certificate thumbprint found in
-      {{ uipath_cert.store_location }}\{{ uipath_cert.store_name }}
-      for subject {{ uipath_cert.subject }}.
+      {{ ssl_certificate.store_location }}\{{ ssl_certificate.store_name }}
+      for subject {{ ssl_certificate.subject }}.
 
 - name: Populate discovered thumbprint into uipath_cert
   ansible.builtin.set_fact:
+    ssl_certificate: >-
+      {{
+        ssl_certificate
+        | combine(
+            {
+              'thumbprint': uipath_discovered_thumbprint
+            },
+            recursive=True
+          )
+      }}
     uipath_cert: >-
       {{
         uipath_cert
