@@ -8,6 +8,13 @@
   loop: "{{ vscode_packages }}"
   loop_control:
     loop_var: software_key
+
+- name: Execute vscode installation plan
+  ansible.builtin.include_tasks: ../../common/tasks/execute_plan.yml
+  loop: "{{ resolved_packages }}"
+  loop_control:
+    loop_var: pkg
+  when: resolved_packages | length > 0
   
 - name: "Debug plan (vscode role)"
   when: debug_mode | bool

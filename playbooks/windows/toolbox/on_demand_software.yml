@@ -1,0 +1,60 @@
+- name: Windows Toolbox On-Demand Software Install
+  hosts: "{{ target_group }}"
+  gather_facts: false
+  any_errors_fatal: true
+
+  vars:
+    installer_cache_dir: "C:\\Temp\\ansible\\installers"
+    debug_mode: false
+
+  pre_tasks:
+    - name: Validate required input
+      ansible.builtin.assert:
+        that:
+          - target_group is defined
+          - target_group | trim | length > 0
+          - software_role is defined
+          - software_role | trim | length > 0
+        fail_msg: >-
+          You must pass both target_group and software_role.
+          Example:
+          ansible-playbook playbooks/windows/toolbox/on_demand_software.yml
+          -i inventories/lab
+          -e "target_group=team_toolbox_alpha software_role=git"
+
+    - name: Validate target group exists in inventory
+      ansible.builtin.assert:
+        that:
+          - groups[target_group] is defined
+          - groups[target_group] | length > 0
+        fail_msg: >-
+          TARGET_GROUP '{{ target_group }}' was not found in the selected inventory
+          or does not contain any hosts.
+
+    - name: Load Windows software catalog
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../../../roles/windows/common/tasks/load_software_catalog.yml"
+
+    - name: Validate software role directory exists
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/../../../roles/windows/{{ software_role }}"
+      register: requested_role_dir
+      delegate_to: localhost
+
+    - name: Fail if requested role directory is missing
+      ansible.builtin.assert:
+        that:
+          - requested_role_dir.stat.exists
+          - requested_role_dir.stat.isdir
+        fail_msg: "Requested Windows role 'windows/{{ software_role }}' does not exist."
+
+    - name: Show requested on-demand install
+      ansible.builtin.debug:
+        msg:
+          target_group: "{{ target_group }}"
+          software_role: "{{ software_role }}"
+          host: "{{ inventory_hostname }}"
+
+  tasks:
+    - name: Include only the requested software role
+      ansible.builtin.include_role:
+        name: "windows/{{ software_role }}"

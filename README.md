@@ -144,7 +144,8 @@ playbooks/
       uipath_orchestrator.yml
       uipath_test_manager.yml
     toolbox/
-      toolbox_servers.yml  Windows toolbox server setup
+      toolbox_servers.yml      Windows toolbox server setup
+      on_demand_software.yml  Single software install on one target group
 
 profiles/
   linux/                   Linux machine profiles
@@ -214,6 +215,7 @@ The pipeline design is still evolving, but the current preferred direction is:
 Examples of likely job-to-playbook mapping:
 
 - `windows_toolbox` job -> `playbooks/windows/toolbox/toolbox_servers.yml`
+- `windows_toolbox_on_demand_software` job -> `playbooks/windows/toolbox/on_demand_software.yml`
 - `windows_uipath_orchestrator` job -> `playbooks/windows/platform/uipath_orchestrator.yml`
 - `windows_uipath_test_manager` job -> `playbooks/windows/platform/uipath_test_manager.yml`
 - `linux_runner` job -> `playbooks/linux/gitlab_runner.yml`
@@ -223,6 +225,12 @@ This keeps pipeline execution simple and makes it easier to:
 - rerun one machine category without affecting others
 - review failures by playbook
 - introduce approvals or environment-specific controls later
+
+## Operator Note
+
+Use the full provisioning playbooks when the intent is to apply the normal machine composition for toolbox, UiPath, or Linux hosts.
+
+Use `playbooks/windows/toolbox/on_demand_software.yml` only for a surgical Windows toolbox install of exactly one software role on exactly one target group. This path does not load base roles, does not load team composition, and does not compute `final_roles`.
 
 Detailed GitLab pipeline implementation is not finalized yet and can be added later once the execution model is confirmed.
 
@@ -354,6 +362,7 @@ Phase 1 – Debug Implementation
 ## Run
 
 ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml
+ansible-playbook playbooks/windows/toolbox/on_demand_software.yml -i inventories/lab -e "target_group=toolbox_servers" -e "software_role=git"
 ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml
 ansible-playbook playbooks/windows/platform/uipath_test_manager.yml
 ansible-playbook playbooks/linux/gitlab_runner.yml

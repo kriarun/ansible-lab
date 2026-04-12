@@ -21,6 +21,7 @@ validate:syntax:
     - ansible-playbook playbooks/windows/toolbox/team_beta.yml -i "$INVENTORY" --syntax-check
     - ansible-playbook playbooks/windows/toolbox/team_gamma.yml -i "$INVENTORY" --syntax-check
     - ansible-playbook playbooks/windows/toolbox/team_neon.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows/toolbox/on_demand_software.yml -i "$INVENTORY" --syntax-check -e "target_group=toolbox_servers" -e "software_role=git"
     - ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml -i "$INVENTORY" --syntax-check
     - ansible-playbook playbooks/windows/platform/uipath_test_manager.yml -i "$INVENTORY" --syntax-check
     - ansible-playbook playbooks/linux/gitlab_runner.yml -i "$INVENTORY" --syntax-check
@@ -53,6 +54,20 @@ deploy:windows_toolbox_team_neon:
   stage: deploy
   script:
     - ansible-playbook playbooks/windows/toolbox/team_neon.yml -i "$INVENTORY"
+  when: manual
+
+deploy:windows_toolbox_on_demand_software:
+  stage: deploy
+  variables:
+    INVENTORY: inventories/lab
+    TARGET_GROUP: ""
+    SOFTWARE_ROLE: ""
+  script:
+    - test -n "$INVENTORY" || (echo "INVENTORY is required." && exit 1)
+    - test -n "$TARGET_GROUP" || (echo "TARGET_GROUP is required." && exit 1)
+    - test -n "$SOFTWARE_ROLE" || (echo "SOFTWARE_ROLE is required." && exit 1)
+    - test -e "$INVENTORY" || (echo "INVENTORY '$INVENTORY' does not exist." && exit 1)
+    - ansible-playbook playbooks/windows/toolbox/on_demand_software.yml -i "$INVENTORY" -e "target_group=$TARGET_GROUP" -e "software_role=$SOFTWARE_ROLE"
   when: manual
 
 deploy:windows_uipath_orchestrator:
