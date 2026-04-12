@@ -137,9 +137,14 @@ inventories/
   prd/                     Production environment structure
 
 playbooks/
-  linux_runner.yml         Linux runner provisioning
-  windows_toolbox.yml      Windows toolbox server setup
-  windows_uipath.yml       UiPath server provisioning
+  linux/
+    gitlab_runner.yml      Linux runner provisioning
+  windows/
+    platform/
+      uipath_orchestrator.yml
+      uipath_test_manager.yml
+    toolbox/
+      toolbox_servers.yml  Windows toolbox server setup
 
 profiles/
   linux/                   Linux machine profiles
@@ -183,13 +188,13 @@ Automation is executed using standard Ansible commands.
 Example:
 
 ```id="run-toolbox"
-ansible-playbook playbooks/windows_toolbox.yml -i inventories/lab
+ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i inventories/lab
 ```
 
 Example for production:
 
 ```id="run-prd"
-ansible-playbook playbooks/linux_runner.yml -i inventories/prd
+ansible-playbook playbooks/linux/gitlab_runner.yml -i inventories/prd
 ```
 
 Execution should always target the appropriate inventory.
@@ -208,9 +213,10 @@ The pipeline design is still evolving, but the current preferred direction is:
 
 Examples of likely job-to-playbook mapping:
 
-- `windows_toolbox` job -> `playbooks/windows_toolbox.yml`
-- `windows_uipath` job -> `playbooks/windows_uipath.yml`
-- `linux_runner` job -> `playbooks/linux_runner.yml`
+- `windows_toolbox` job -> `playbooks/windows/toolbox/toolbox_servers.yml`
+- `windows_uipath_orchestrator` job -> `playbooks/windows/platform/uipath_orchestrator.yml`
+- `windows_uipath_test_manager` job -> `playbooks/windows/platform/uipath_test_manager.yml`
+- `linux_runner` job -> `playbooks/linux/gitlab_runner.yml`
 
 This keeps pipeline execution simple and makes it easier to:
 
@@ -347,6 +353,7 @@ Phase 1 – Debug Implementation
 
 ## Run
 
-ansible-playbook playbooks/windows_toolbox.yml
-ansible-playbook playbooks/windows_uipath.yml
-ansible-playbook playbooks/linux_runner.yml
+ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml
+ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml
+ansible-playbook playbooks/windows/platform/uipath_test_manager.yml
+ansible-playbook playbooks/linux/gitlab_runner.yml

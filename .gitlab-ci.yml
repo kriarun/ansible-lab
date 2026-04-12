@@ -16,24 +16,31 @@ variables:
 validate:syntax:
   stage: validate
   script:
-    - ansible-playbook playbooks/windows_toolbox.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/windows_uipath.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/linux_runner.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows/platform/uipath_test_manager.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/linux/gitlab_runner.yml -i "$INVENTORY" --syntax-check
 
 deploy:windows_toolbox:
   stage: deploy
   script:
-    - ansible-playbook playbooks/windows_toolbox.yml -i "$INVENTORY"
+    - ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i "$INVENTORY"
   when: manual
 
-deploy:windows_uipath:
+deploy:windows_uipath_orchestrator:
   stage: deploy
   script:
-    - ansible-playbook playbooks/windows_uipath.yml -i "$INVENTORY"
+    - ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml -i "$INVENTORY"
+  when: manual
+
+deploy:windows_uipath_test_manager:
+  stage: deploy
+  script:
+    - ansible-playbook playbooks/windows/platform/uipath_test_manager.yml -i "$INVENTORY"
   when: manual
 
 deploy:linux_runner:
   stage: deploy
   script:
-    - ansible-playbook playbooks/linux_runner.yml -i "$INVENTORY"
+    - ansible-playbook playbooks/linux/gitlab_runner.yml -i "$INVENTORY"
   when: manual

@@ -1,17 +1,11 @@
-- name: Windows UiPath Machines
+- name: Windows UiPath Orchestrator
   hosts: uipath_orchestrator
   gather_facts: false
 
   pre_tasks:
     - name: Load machine blueprint for orchestrator
       include_vars:
-        file: "../profiles/windows/machines/uipath_orchestrator.yml"
-      when: "'uipath_orchestrator' in group_names"
-
-    #- name: Load machine blueprint for test manager
-    #  include_vars:
-    #    file: "../profiles/windows/machines/uipath_test_manager.yml"
-    #  when: "'uipath_test_manager' in group_names"
+        file: "../../../profiles/windows/machines/uipath_orchestrator.yml"
 
     - name: Compute final roles for machine
       set_fact:

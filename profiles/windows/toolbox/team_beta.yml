@@ -1,0 +1,15 @@
+team_roles:
+  - python
+  - machine_configuration
+
+python_packages:
+  - python_3_13_2
+
+machine_env:
+  enabled: true
+  variables:
+    TEAM_NAME: beta
+    APP_MODE: development
+
+debug_mode: true
+installer_cache_dir: "C:\\Temp\\ansible\\installers"

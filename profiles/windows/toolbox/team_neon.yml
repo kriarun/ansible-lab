@@ -1,0 +1,15 @@
+team_roles:
+  - machine_configuration
+  - python
+
+python_packages:
+  - python_3_13_2
+
+machine_env:
+  enabled: true
+  variables:
+    TEAM_NAME: neon
+    APP_MODE: test
+
+debug_mode: true
+installer_cache_dir: "C:\\Temp\\ansible\\installers"

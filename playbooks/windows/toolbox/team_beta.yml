@@ -1,0 +1,39 @@
+- name: Windows Toolbox Team Beta
+  hosts: team_toolbox_beta
+  gather_facts: false
+
+  vars_files:
+    - ../../../profiles/windows/toolbox/base.yml
+
+  pre_tasks:
+    - name: Load team beta blueprint
+      include_vars:
+        file: "../../../profiles/windows/toolbox/team_beta.yml"
+
+    - name: Compute final roles for toolbox
+      set_fact:
+        _team_roles: "{{ team_roles | default([]) }}"
+        _remove_roles: "{{ remove_roles | default([]) }}"
+        final_roles: >-
+          {{
+            (base_roles | default([]) + team_roles | default([]))
+            | unique
+            | reject('in', remove_roles | default([]))
+            | list
+          }}
+
+    - name: Debug composition
+      debug:
+        msg:
+          host: "{{ inventory_hostname }}"
+          groups: "{{ group_names }}"
+          base_roles: "{{ base_roles | default([]) }}"
+          team_roles: "{{ _team_roles }}"
+          remove_roles: "{{ _remove_roles }}"
+          final_roles: "{{ final_roles }}"
+
+  tasks:
+    - name: Execute final roles (debug-only roles for now)
+      include_role:
+        name: "windows/{{ item }}"
+      loop: "{{ final_roles }}"

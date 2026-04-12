@@ -1,0 +1,8 @@
+team_roles:
+  - python
+
+python_packages:
+  - python_3_10_11
+
+debug_mode: true
+installer_cache_dir: "C:\\Temp\\ansible\\installers"

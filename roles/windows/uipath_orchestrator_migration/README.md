@@ -9,7 +9,7 @@ roles/windows/uipath_orchestrator_migration
 It is designed to run from the `uipath_orchestrator` inventory group through:
 
 ```text
-playbooks/windows_uipath.yml
+playbooks/windows/platform/uipath_orchestrator.yml
 ```
 
 ## Entry Points
@@ -17,7 +17,7 @@ playbooks/windows_uipath.yml
 - Machine blueprint: [profiles/windows/machines/uipath_orchestrator.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/profiles/windows/machines/uipath_orchestrator.yml:1)
 - Inventory variables: [inventories/lab/group_vars/uipath_orchestrator.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/inventories/lab/group_vars/uipath_orchestrator.yml:1)
 - Software catalog: [profiles/windows/software_catalog/uipath.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/profiles/windows/software_catalog/uipath.yml:1)
-- Playbook: [playbooks/windows_uipath.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/playbooks/windows_uipath.yml:1)
+- Playbook: [playbooks/windows/platform/uipath_orchestrator.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/playbooks/windows/platform/uipath_orchestrator.yml:1)
 
 ## Role Order
 
@@ -107,5 +107,5 @@ At the moment, these files are scaffolds and should be filled in with the final 
 ## Running It
 
 ```powershell
-ansible-playbook playbooks/windows_uipath.yml -i inventories/lab/hosts.yml
+ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml -i inventories/lab/hosts.yml
 ```

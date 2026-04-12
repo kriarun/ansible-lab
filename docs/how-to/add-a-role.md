@@ -82,7 +82,7 @@ machine_roles:
 Run the playbook that targets the machine type:
 
 ```powershell
-ansible-playbook playbooks/windows_toolbox.yml -i inventories/lab
+ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i inventories/lab
 ```
 
 ## Notes

@@ -1,0 +1,33 @@
+- name: Windows UiPath Test Manager
+  hosts: uipath_test_manager
+  gather_facts: false
+
+  pre_tasks:
+    - name: Load machine blueprint for test manager
+      include_vars:
+        file: "../../../profiles/windows/machines/uipath_test_manager.yml"
+
+    - name: Compute final roles for machine
+      set_fact:
+        _remove_roles: "{{ remove_roles | default([]) }}"
+        final_roles: >-
+          {{
+            (machine_roles | default([]))
+            | unique
+            | difference(remove_roles | default([]))
+          }}
+
+    - name: Debug composition
+      debug:
+        msg:
+          host: "{{ inventory_hostname }}"
+          groups: "{{ group_names }}"
+          machine_roles: "{{ machine_roles | default([]) }}"
+          remove_roles: "{{ _remove_roles }}"
+          final_roles: "{{ final_roles }}"
+
+  tasks:
+    - name: Execute final roles
+      include_role:
+        name: "windows/{{ item }}"
+      loop: "{{ final_roles }}"
