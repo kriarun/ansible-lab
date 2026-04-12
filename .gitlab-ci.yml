@@ -17,6 +17,10 @@ validate:syntax:
   stage: validate
   script:
     - ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows/toolbox/team_alpha.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows/toolbox/team_beta.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows/toolbox/team_gamma.yml -i "$INVENTORY" --syntax-check
+    - ansible-playbook playbooks/windows/toolbox/team_neon.yml -i "$INVENTORY" --syntax-check
     - ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml -i "$INVENTORY" --syntax-check
     - ansible-playbook playbooks/windows/platform/uipath_test_manager.yml -i "$INVENTORY" --syntax-check
     - ansible-playbook playbooks/linux/gitlab_runner.yml -i "$INVENTORY" --syntax-check
@@ -25,6 +29,30 @@ deploy:windows_toolbox:
   stage: deploy
   script:
     - ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i "$INVENTORY"
+  when: manual
+
+deploy:windows_toolbox_team_alpha:
+  stage: deploy
+  script:
+    - ansible-playbook playbooks/windows/toolbox/team_alpha.yml -i "$INVENTORY"
+  when: manual
+
+deploy:windows_toolbox_team_beta:
+  stage: deploy
+  script:
+    - ansible-playbook playbooks/windows/toolbox/team_beta.yml -i "$INVENTORY"
+  when: manual
+
+deploy:windows_toolbox_team_gamma:
+  stage: deploy
+  script:
+    - ansible-playbook playbooks/windows/toolbox/team_gamma.yml -i "$INVENTORY"
+  when: manual
+
+deploy:windows_toolbox_team_neon:
+  stage: deploy
+  script:
+    - ansible-playbook playbooks/windows/toolbox/team_neon.yml -i "$INVENTORY"
   when: manual
 
 deploy:windows_uipath_orchestrator:
