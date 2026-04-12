@@ -1,4 +1,0 @@
----
-uipath_iis_service_name: W3SVC
-uipath_install_check_path: "C:\\Program Files\\UiPath\\Orchestrator"
-uipath_log_dir: "C:\\Temp\\ansible\\uipath"

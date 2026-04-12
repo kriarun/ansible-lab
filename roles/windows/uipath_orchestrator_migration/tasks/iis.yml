@@ -1,2 +1,5 @@
 ---
-# Task file placeholder for IIS configuration.
+- name: UiPath | Manage IIS service state
+  ansible.windows.win_service:
+    name: "{{ uipath_iis_service_name | default('W3SVC') }}"
+    state: "{{ uipath_iis_state | default('started') }}"

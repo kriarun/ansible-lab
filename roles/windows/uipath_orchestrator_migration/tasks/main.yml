@@ -4,7 +4,28 @@
   loop:
     - fetch_certificate.yml
     - external_validation.yml
-    - install_orchestrator.yml    
-    
+    - install_orchestrator.yml
   loop_control:
     label: "{{ item }}"
+
+- name: Stop IIS before UiPath configuration changes
+  ansible.builtin.include_tasks: iis.yml
+  vars:
+    uipath_iis_state: stopped
+
+- name: Configure UiPath orchestrator DLL settings
+  ansible.builtin.include_tasks: uipath_orchestrator_dll_configuration.yml
+
+- name: Configure UiPath appsettings production file
+  ansible.builtin.include_tasks: appsettings_production_configuration.yml
+
+- name: Configure UiPath resource catalog appsettings production file
+  ansible.builtin.include_tasks: resourcecatalog_appsettings_production_configuration.yml
+
+- name: Configure UiPath webhooks appsettings production file
+  ansible.builtin.include_tasks: webhooks_appsettings_production_configuration.yml
+
+- name: Start IIS after UiPath configuration changes
+  ansible.builtin.include_tasks: iis.yml
+  vars:
+    uipath_iis_state: started
