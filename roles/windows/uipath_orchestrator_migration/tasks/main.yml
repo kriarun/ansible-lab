@@ -1,0 +1,10 @@
+---
+- name: Execute UiPath orchestrator migration stages
+  ansible.builtin.include_tasks: "{{ item }}"
+  loop:
+    - fetch_certificate.yml
+    - external_validation.yml
+    - install_orchestrator.yml    
+    
+  loop_control:
+    label: "{{ item }}"

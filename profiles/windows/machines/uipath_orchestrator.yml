@@ -2,7 +2,7 @@ machine_roles:
   - certificate
   - iis
   - dotnet_hosting
-  - uipath_orchestrator
+  - uipath_orchestrator_migration
   - machine_configuration
 
 dotnet_hosting_packages:

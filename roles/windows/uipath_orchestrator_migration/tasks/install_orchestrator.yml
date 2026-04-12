@@ -1,0 +1,22 @@
+---
+
+- name: UiPath | Resolve bootstrap installer package
+  ansible.builtin.set_fact:
+    resolved_packages: []
+
+- name: Reload the software catlog to update the Certifcate Thumpbptin
+  ansible.builtin.include_tasks: ../../common/tasks/load_software_catalog.yml
+
+
+- name: UiPath | Resolve UiPath installer from software catalog
+  ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+  vars:
+    software_key: "{{ uipath_installer_package }}"
+
+
+
+- name: Execute installation plan 
+  ansible.builtin.include_tasks: ../../common/tasks/execute_plan.yml
+  loop: "{{ resolved_packages }}"
+  loop_control:
+    loop_var: pkg

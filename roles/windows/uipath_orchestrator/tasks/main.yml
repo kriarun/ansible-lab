@@ -12,10 +12,9 @@
 - name: Execute UiPath orchestrator stages
   ansible.builtin.include_tasks: "{{ item }}"
   loop:
-    - external_validation.yml
     - preinstall_validation.yml
     - install.yml
     - runtime_override.yml
-    - technical_validation.yml
+    - external_validation.yml
   loop_control:
     label: "{{ item }}"
