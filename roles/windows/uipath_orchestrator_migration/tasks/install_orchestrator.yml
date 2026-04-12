@@ -11,7 +11,10 @@
 - name: UiPath | Resolve UiPath installer from software catalog
   ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
   vars:
-    software_key: "{{ uipath_installer_package }}"
+    software_key: "{{ item }}"
+  loop: "{{ uipath_orchestrator_packages }}"
+  loop_control:
+    label: "{{ item }}"
 
 
 

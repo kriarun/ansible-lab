@@ -1,4 +1,15 @@
 ---
+- name: Validate UiPath orchestrator migration inputs
+  ansible.builtin.assert:
+    that:
+      - uipath_orchestrator_packages is defined
+      - uipath_orchestrator_packages | length > 0
+      - uipath_runtime is defined
+      - uipath_cert is defined
+    fail_msg: >-
+      UiPath orchestrator migration variables are incomplete. Expected
+      uipath_orchestrator_packages, uipath_runtime, and uipath_cert.
+
 - name: Execute UiPath orchestrator migration stages
   ansible.builtin.include_tasks: "{{ item }}"
   loop:

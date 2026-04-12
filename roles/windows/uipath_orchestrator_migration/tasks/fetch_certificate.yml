@@ -9,7 +9,7 @@
   ansible.builtin.set_fact:
     uipath_matching_certificates: >-
       {{
-        uipath_certificates_info.certificates        
+        uipath_certificates_info.certificates
         | selectattr('subject', 'search', uipath_cert.subject)
         | list
       }}
@@ -22,8 +22,8 @@
   ansible.builtin.set_fact:
     uipath_valid_certificates: >-
       {{
-        uipath_matching_certificates        
-        | selectattr('valid_to', '>', uipath_current_epoch | int )
+        uipath_matching_certificates
+        | selectattr('valid_to', '>', uipath_current_epoch | int)
         | list
       }}
 
@@ -38,7 +38,6 @@
         ).thumbprint | default('')
       }}
 
-
 - name: Assert certificate thumbprint is present
   ansible.builtin.assert:
     that:
@@ -47,8 +46,6 @@
       No valid certificate thumbprint found in
       {{ uipath_cert.store_location }}\{{ uipath_cert.store_name }}
       for subject {{ uipath_cert.subject }}.
-
-
 
 - name: Populate discovered thumbprint into uipath_cert
   ansible.builtin.set_fact:

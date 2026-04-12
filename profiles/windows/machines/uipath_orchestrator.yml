@@ -1,16 +1,24 @@
 machine_roles:
   - certificate
+  - microsoft_dotnet_framework
   - iis
   - dotnet_hosting
-  - uipath_orchestrator_migration
-  - machine_configuration
+  - iis_url_rewrite
+  - microsoft_web_deploy
+  - uipath_orchestrator_migration  
 
 dotnet_hosting_packages:
-  - dotnet_hosting_bundle
-  - aspnetcore_hosting_bundle
+  - dotnet-hosting-8.0.13-win
+  
+iis_url_rewrite_packages:
+  - iis-url-rewrite-v2
 
-uipath_prereq_packages:
-  - iis_url_rewrite
-  - web_deploy
+microsoft_web_deploy_packages:
+  - microsoft-web-deploy-v3
 
-uipath_orchestrator_package: uipath_orchestrator_installer
+microsoft_dotnet_framework_packages:
+  - microsoft-donet-framework-4.7.2  
+
+
+uipath_orchestrator_packages:
+   - uipath_orchestrator_2024.10.1
