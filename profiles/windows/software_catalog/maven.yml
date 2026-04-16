@@ -1,0 +1,30 @@
+maven:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "apache-maven-3.9.9-bin.zip"
+
+  install:
+    type: zip
+    destination: "C:\\Tools\\apache-maven-3.9.9"
+    check:
+      path_exists: "C:\\Tools\\apache-maven-3.9.9\\bin\\mvn.cmd"
+
+  path:
+    enabled: true
+    entries:
+      - "C:\\Tools\\apache-maven-3.9.9\\bin"
+
+  env:
+    enabled: true
+    variables:
+      JAVA_HOME: /opt/jdk
+      MAVEN_HOME: /opt/maven
+
+  registry:
+    enabled: true
+    entries:
+      - path: HKLM:\Software\MyCompany\ToolX
+        name: Enabled
+        type: dword
+        value: 1

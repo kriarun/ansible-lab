@@ -1,0 +1,10 @@
+python_3_10_11:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "python-3.10.11-amd64.exe"
+  install:
+    type: exe
+    arguments: "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
+    check:
+      path_exists: "C:\\Program Files\\Python310\\python.exe"

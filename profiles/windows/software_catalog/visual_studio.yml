@@ -1,0 +1,14 @@
+visual_studio:
+  source: shared
+  install:
+    type: exe
+    arguments: ...
+    check:
+      path_exists: C:\Program Files\Microsoft Visual Studio
+
+  certificate:
+    enabled: true
+    entries:
+      - file: \\share\vs\certificates\MicrosoftWindowsCodeSigningPCA2024.cer
+        store_location: LocalMachine
+        store_name: CA

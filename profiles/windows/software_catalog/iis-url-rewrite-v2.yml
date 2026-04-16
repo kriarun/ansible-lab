@@ -1,0 +1,10 @@
+iis-url-rewrite-v2:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "rewrite_amd64_en-US.msi"
+  install:
+    type: msi
+    arguments: "/qn"
+    check:
+      path_exists: "C:\\Program Files\\IIS\\URL Rewrite\\rewrite.dll"

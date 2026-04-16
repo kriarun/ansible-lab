@@ -1,0 +1,10 @@
+dotnet_hosting_bundle:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "dotnet-hosting-bundle.exe"
+  install:
+    type: exe
+    arguments: "/quiet /norestart"
+    check:
+      path_exists: "C:\\Program Files\\dotnet\\dotnet.exe"

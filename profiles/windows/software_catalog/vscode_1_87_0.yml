@@ -1,0 +1,10 @@
+vscode_1_87_0:
+  source:
+    type: jfrog
+    url: "https://jfrog.com"
+    filename: "Git-2.44.0-64-bit.exe"
+  install:
+    type: exe
+    arguments: "/VERYSILENT"
+    check:
+      path_exists: "C:\\Program Files\\Git\\bin\\git.exe"

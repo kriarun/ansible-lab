@@ -1,0 +1,10 @@
+microsoft-donet-framework-4.7.2:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "NDP472-KB4054530-x86-x64-AllOS-ENU.exe"
+  install:
+    type: exe
+    arguments: "/q /norestart"
+    check:
+      path_exists: "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319"

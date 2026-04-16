@@ -1,0 +1,10 @@
+microsoft-web-deploy-v3:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "WebDeploy_amd64_en-US.msi"
+  install:
+    type: msi
+    arguments: "/qn"
+    check:
+      path_exists: "C:\\Program Files\\IIS\\Microsoft Web Deploy V3\\msdeploy.exe"
