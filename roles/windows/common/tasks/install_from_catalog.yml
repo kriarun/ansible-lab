@@ -1,0 +1,46 @@
+---
+- name: Validate catalog install inputs
+  ansible.builtin.assert:
+    that:
+      - software_catalog_entry is defined
+      - software_catalog_entry | trim | length > 0
+      - software_package_list is defined
+    fail_msg: >-
+      software_catalog_entry and software_package_list must be provided to
+      install_from_catalog.yml.
+
+- name: Initialize resolved package list
+  ansible.builtin.set_fact:
+    resolved_packages: []
+
+- name: Resolve packages from software catalog
+  ansible.builtin.include_tasks: resolve_installer.yml
+  vars:
+    software_catalog_entry: "{{ software_catalog_entry }}"
+  loop: "{{ software_package_list }}"
+  loop_control:
+    loop_var: software_key
+
+- name: Execute installation plan
+  ansible.builtin.include_tasks: execute_plan.yml
+  loop: "{{ resolved_packages }}"
+  loop_control:
+    loop_var: pkg
+  when: resolved_packages | length > 0
+
+- name: Debug installation plan
+  when: debug_mode | default(false) | bool
+  block:
+    - ansible.builtin.debug:
+        msg: "================ ROLE: {{ software_role_name | default('software') }} ================"
+    - ansible.builtin.debug:
+        msg: |
+          Software: {{ item.software_key }}
+            Source Type: {{ item.source.type }}
+            Original Path: {{ item.source.original_path }}
+            Requires Transfer: {{ item.source.requires_transfer }}
+            Final Installer Path: {{ item.installer.final_path }}
+            Install Arguments: {{ item.install.arguments }}
+      loop: "{{ resolved_packages }}"
+    - ansible.builtin.debug:
+        msg: "================================================"

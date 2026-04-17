@@ -1,19 +1,7 @@
 ---
-- name: Initialize resolved Microsoft .NET Framework package list
-  ansible.builtin.set_fact:
-    resolved_packages: []
-
-- name: Resolve Microsoft .NET Framework packages
-  ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+- name: Install Microsoft .NET Framework packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
   vars:
     software_catalog_entry: microsoft_dotnet_framework.yml
-  loop: "{{ microsoft_dotnet_framework_packages | default([]) }}"
-  loop_control:
-    loop_var: software_key
-
-- name: Execute Microsoft .NET Framework installation plan
-  ansible.builtin.include_tasks: ../../common/tasks/execute_plan.yml
-  loop: "{{ resolved_packages }}"
-  loop_control:
-    loop_var: pkg
-  when: resolved_packages | length > 0
+    software_package_list: "{{ microsoft_dotnet_framework_packages | default([]) }}"
+    software_role_name: microsoft_dotnet_framework

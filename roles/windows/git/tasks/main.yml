@@ -1,35 +1,7 @@
-- name: Initialize resolved list
-  ansible.builtin.set_fact:
-    resolved_packages: []
-
-- name: Resolve Git
-  ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+- name: Install Git packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
   vars:
     software_catalog_entry: git.yml
-  loop:
-    - git_2_44_0
-  loop_control:
-    loop_var: software_key
-
-- name: Execute installation plan
-  ansible.builtin.include_tasks: ../../common/tasks/execute_plan.yml
-  loop: "{{ resolved_packages }}"
-  loop_control:
-    loop_var: pkg
-
-- name: "Debug plan (vscode role)"
-  when: debug_mode | bool
-  block:
-    - debug:
-        msg: "================ ROLE: vscode ================"
-    - debug:
-        msg: |
-          Software: {{ item.software_key }}
-            Source Type: {{ item.source.type }}
-            Original Path: {{ item.source.original_path }}
-            Requires Transfer: {{ item.source.requires_transfer }}
-            Final Installer Path: {{ item.installer.final_path }}
-            Install Arguments: {{ item.install.arguments }}
-      loop: "{{ resolved_packages }}"
-    - debug:
-        msg: "================================================"
+    software_package_list:
+      - git_2_44_0
+    software_role_name: git
