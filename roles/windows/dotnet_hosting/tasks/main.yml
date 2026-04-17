@@ -5,6 +5,8 @@
 
 - name: Resolve dotnet hosting packages
   ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+  vars:
+    software_catalog_entry: dotnet_hosting.yml
   loop: "{{ dotnet_hosting_packages | default([]) }}"
   loop_control:
     loop_var: software_key

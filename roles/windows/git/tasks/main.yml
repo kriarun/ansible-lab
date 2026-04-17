@@ -4,6 +4,8 @@
 
 - name: Resolve Git
   ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+  vars:
+    software_catalog_entry: git.yml
   loop:
     - git_2_44_0
   loop_control:

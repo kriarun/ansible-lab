@@ -4,14 +4,12 @@
   ansible.builtin.set_fact:
     resolved_packages: []
 
-- name: Reload the software catlog to update the Certifcate Thumpbptin
-  ansible.builtin.include_tasks: ../../common/tasks/load_software_catalog.yml
-
-
 - name: UiPath | Resolve UiPath installer from software catalog
   ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
   vars:
     software_key: "{{ item }}"
+    software_catalog_entry: uipath_orchestrator_migration.yml
+    software_catalog_force_reload: true
   loop: "{{ uipath_orchestrator_packages }}"
   loop_control:
     label: "{{ item }}"

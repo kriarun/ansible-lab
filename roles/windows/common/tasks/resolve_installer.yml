@@ -6,7 +6,14 @@
 
 - name: Load software catalog if not already loaded
   ansible.builtin.include_tasks: load_software_catalog.yml
-  when: software_catalog is not defined
+  vars:
+    software_catalog_entry: "{{ software_catalog_entry | default('') }}"
+  when: >-
+    software_catalog is not defined
+    or (software_catalog_force_reload | default(false))
+    or (
+      (software_catalog_entry | default('') | trim) != software_catalog_source | default('__undefined__')
+    )
 
 - name: Print software catalog
   ansible.builtin.debug:

@@ -5,6 +5,8 @@
 
 - name: Resolve IIS URL Rewrite packages
   ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+  vars:
+    software_catalog_entry: iis_url_rewrite.yml
   loop: "{{ iis_url_rewrite_packages | default([]) }}"
   loop_control:
     loop_var: software_key

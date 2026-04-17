@@ -8,3 +8,14 @@ python_3_10_11:
     arguments: "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
     check:
       path_exists: "C:\\Program Files\\Python310\\python.exe"
+
+python_3_13_2:
+  source:
+    type: jfrog
+    path: "D:\\ManualDrops"
+    filename: "python-3.13.2-amd64.exe"
+  install:
+    type: exe
+    arguments: "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0"
+    check:
+      path_exists: "C:\\Program Files\\Python313\\python.exe"

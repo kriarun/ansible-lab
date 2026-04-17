@@ -1,17 +1,51 @@
 ---
-- name: Find software catalog fragment files
-  ansible.builtin.find:
-    paths: "{{ role_path }}/../../../profiles/windows/software_catalog"
-    patterns: "*.yml"
-    file_type: file
-  register: _catalog_files
+- name: Define software catalog root
+  ansible.builtin.set_fact:
+    _software_catalog_root: "{{ role_path }}/../../../profiles/windows/software_catalog"
+  run_once: true
+
+- name: Normalize requested software catalog file
+  ansible.builtin.set_fact:
+    _requested_software_catalog_entry: "{{ software_catalog_entry | default('') | trim }}"
+  run_once: true
+
+- name: Validate software catalog file was provided
+  ansible.builtin.assert:
+    that:
+      - _requested_software_catalog_entry | length > 0
+    fail_msg: >-
+      A software catalog entry must be provided to load_software_catalog.yml.
+      Pass software_catalog_entry such as 'git.yml' or 'python.yml'.
+  run_once: true
+
+- name: Check requested software catalog fragment
+  ansible.builtin.stat:
+    path: "{{ _software_catalog_root }}/{{ _requested_software_catalog_entry }}"
+  register: _requested_catalog_file
   delegate_to: localhost
   run_once: true
 
+- name: Validate requested software catalog fragment exists
+  ansible.builtin.assert:
+    that:
+      - _requested_catalog_file.stat.exists
+      - _requested_catalog_file.stat.isreg
+    fail_msg: >-
+      Requested software catalog file '{{ _requested_software_catalog_entry }}' was not found in
+      {{ _software_catalog_root }}.
+  run_once: true
+
+- name: Build software catalog fragment list
+  ansible.builtin.set_fact:
+    _catalog_fragment_paths:
+      - "{{ _requested_catalog_file.stat.path }}"
+    _software_catalog_source: "{{ _requested_software_catalog_entry }}"
+  run_once: true
 
 - name: Initialize merged software catalog
   ansible.builtin.set_fact:
     software_catalog: {}
+    software_catalog_source: "{{ _software_catalog_source }}"
   run_once: true
 
 
@@ -20,9 +54,9 @@
     software_catalog: >-
       {{
         software_catalog
-        | combine((lookup('ansible.builtin.template', item.path) | from_yaml), recursive=True)
+        | combine((lookup('ansible.builtin.template', item) | from_yaml), recursive=True)
       }}
-  loop: "{{ _catalog_files.files | sort(attribute='path') }}"
+  loop: "{{ _catalog_fragment_paths }}"
   loop_control:
-    label: "{{ item.path | basename }}"
+    label: "{{ item | basename }}"
   run_once: true

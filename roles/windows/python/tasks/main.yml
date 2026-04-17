@@ -5,6 +5,8 @@
 
 - name: "Resolve python packages"
   include_tasks: ../common/tasks/resolve_installer.yml
+  vars:
+    software_catalog_entry: python.yml
   loop: "{{ python_packages }}"
   loop_control:
     loop_var: software_key

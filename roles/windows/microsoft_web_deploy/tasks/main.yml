@@ -5,6 +5,8 @@
 
 - name: Resolve Microsoft Web Deploy packages
   ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
+  vars:
+    software_catalog_entry: microsoft_web_deploy.yml
   loop: "{{ microsoft_web_deploy_packages | default([]) }}"
   loop_control:
     loop_var: software_key
