@@ -1,0 +1,102 @@
+spec:
+  inputs:
+    environment:
+      type: string
+      default: lab
+      options:
+        - lab
+        - dev
+        - test
+        - prd
+      description: "Target environment"
+
+    domain:
+      type: string
+      default: toolbox
+      options:
+        - toolbox
+        - platform
+      description: "Deployment domain"
+
+    target:
+      type: string
+      description: "Team or platform target"
+      rules:
+        - if: $[[ inputs.domain ]] == 'toolbox'
+          options:
+            - team_alpha
+            - team_beta
+            - team_gamma
+            - team_neon
+          default: team_alpha
+        - if: $[[ inputs.domain ]] == 'platform'
+          options:
+            - uipath_orchestrator
+            - uipath_test_manager
+          default: uipath_orchestrator
+
+stages:
+  - verify
+  - prepare
+  - deploy
+
+default:
+  image: python:3.11-slim
+  before_script:
+    - python --version
+    - echo "Using dummy pipeline flow"
+
+variables:
+  ANSIBLE_CONFIG: ansible.cfg
+
+verify:
+  stage: verify
+  script:
+    - echo "Running validations..."
+    - echo "Environment: $[[ inputs.environment ]]"
+    - echo "Domain: $[[ inputs.domain ]]"
+    - echo "Target: $[[ inputs.target ]]"
+    - echo "Validation successful"
+
+prepare_secrets:
+  stage: prepare
+  script:
+    - echo "Fetching secrets (dummy)..."
+    - echo "Using DSO/Vault flow placeholder"
+  needs:
+    - verify
+
+plan:
+  stage: prepare
+  script:
+    - echo "Generating deployment preview..."
+    - echo "Environment: $[[ inputs.environment ]]" | tee plan.txt
+    - echo "Domain: $[[ inputs.domain ]]" | tee -a plan.txt
+    - echo "Target: $[[ inputs.target ]]" | tee -a plan.txt
+    - echo "" | tee -a plan.txt
+    - echo "Affected hosts (dummy):" | tee -a plan.txt
+    - echo "- host01" | tee -a plan.txt
+    - echo "- host02" | tee -a plan.txt
+    - echo "" | tee -a plan.txt
+    - echo "Roles/packages to apply (dummy):" | tee -a plan.txt
+    - echo "- git" | tee -a plan.txt
+    - echo "- vscode" | tee -a plan.txt
+  artifacts:
+    paths:
+      - plan.txt
+    expire_in: 1 day
+  needs:
+    - verify
+
+deploy:
+  stage: deploy
+  when: manual
+  needs:
+    - prepare_secrets
+    - plan
+  script:
+    - echo "Starting deployment..."
+    - echo "Environment: $[[ inputs.environment ]]"
+    - echo "Domain: $[[ inputs.domain ]]"
+    - echo "Target: $[[ inputs.target ]]"
+    - echo "Running playbook (dummy)"
