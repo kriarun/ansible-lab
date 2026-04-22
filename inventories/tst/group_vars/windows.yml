@@ -1,0 +1,8 @@
+ansible_connection: ssh
+ansible_shell_type: powershell
+ansible_port: 22
+remote_tmp: "C:/Temp/ansible"
+installer_cache_dir: "C:/Temp/ansible/installer"
+
+ansible_user: sevice_account_tst
+ansible_password: "{{ lookup('env','ANSIBLE_USER_PASSWORD_tst')}}"

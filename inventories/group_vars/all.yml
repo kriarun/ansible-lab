@@ -1,0 +1,7 @@
+gather_facts: false
+
+base_roles: []
+remove_roles: []
+machine_roles: []
+add_env_roles: []
+env_remove_roles: []

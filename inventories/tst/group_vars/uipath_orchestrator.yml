@@ -1,0 +1,68 @@
+uipath_ochestrator_installed_path: 'C:\Program Files (x86)\Uipath\Orchestrator'
+
+ssl_certificate:
+  subject: 'subject '
+  thumbprint: ""
+  store_location: LocalMachine
+  store_name: My
+  pfx_path: "{{ lookup('env', 'UIPATH_CERT_PFX_PATH') | default('', true) }}"
+  pfx_password: "{{ lookup('env', 'UIPATH_CERT_PFX_PASSWORD') | default('', true) }}"
+
+uipath_runtime:
+  db_server: "hostname\\sql2022"
+  db_name: "hostname"
+  db_auth: windows
+  elastic_url: 'https://hostname:9200'
+  elastic_username: "elastic"
+  elastic_password: "{{ lookup('env', 'UIPATH_ELASTIC_PASSWORD') }}"
+  elastic_validate_certs: false
+
+uipath_database_settings:
+  - name: "Default"  
+    connection_string: "Data source"
+  - name: "Test Automation"  
+    connection_string: "Data source"    
+  - name: "Update Server"  
+    connection_string: "Data source"        
+
+
+uipath_app_settings:
+  - key: "InstanceKey"
+    value: "value"
+  - key: "IdentityServer.Integration.ClientId"
+    value: "value"
+  - key: "IdentityServer.Integration.ClientSecret"
+    value: "value"
+
+
+uipath_secure_app_settings:
+  - key: "EncryptionKey"
+    value: "value"
+  - key: "IdentityServer.EncryptionKey"
+    value: "value"
+
+
+uipath_orchestrator_install_config:
+  features: "OrchestratorFeature,IndetityFeature,TestAuomationFeature"
+  certficate_subject_or_thumprint: "{{ssl_certficate_thumprint }}"
+  identity_certficate_subject_or_thumprint: "{{ssl_certficate_thumprint }}"
+  default_database_server_name: "hostname"  
+  default_database_name: "databasename"
+  testauomtation_database_server_name: "hostname"
+  testauomtation_database_name: "databasename"  
+  database_authentication_mode: "WINDOWS"
+  application_pool_identity_type: "USER"
+  application_pool_user_name : "username"
+  application_pool_password: "{{ lookup('env','password') }}"
+  hostadmin_password: "{{ lookup('env','admin_password') }}"
+  hostadmin_password_confirm: "{{ lookup('env','admin_password') }}"
+  default_tenantadmin_password: "{{ lookup('env','admin_password') }}"
+  default_tenantadmin_password_confirm: "{{ lookup('env','admin_password') }}"
+  elastic_url: "{{uipath_runtime.url}}"
+  elastic_requires_auth: true
+  elastic_user_name: "{{uipath_runtime.elastic_username}}"
+  elastic_user_passord: "{{uipath_runtime.elastic_password}}"
+  install_log: "{{ uipath_log_dir }}"
+
+
+

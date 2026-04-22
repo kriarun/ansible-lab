@@ -1,5 +1,45 @@
+spec:
+  inputs:
+    environment:
+      type: string
+      default: lab
+      options:
+        - lab
+        - dev
+        - tst
+        - prd
+        - sandbox
+      description: "Target inventory environment"
+
+    domain:
+      type: string
+      default: toolbox
+      options:
+        - toolbox
+        - platform
+      description: "Deployment domain"
+
+    target:
+      type: string
+      description: "Playbook target"
+      rules:
+        - if: $[[ inputs.domain ]] == 'toolbox'
+          options:
+            - team_alpha
+            - team_beta
+            - team_gamma
+            - team_neon
+          default: team_alpha
+        - if: $[[ inputs.domain ]] == 'platform'
+          options:
+            - uipath_orchestrator
+            - uipath_test_manager
+          default: uipath_orchestrator
+
 stages:
-  - validate
+  - codestyle
+  - verify
+  - fetch-secrets
   - deploy
 
 default:
@@ -9,81 +49,30 @@ default:
     - pip install --no-cache-dir ansible
     - ansible-playbook --version
 
-variables:
-  ANSIBLE_CONFIG: ansible.cfg
-  INVENTORY: inventories/lab
 
-validate:syntax:
-  stage: validate
+codestyle:
+  stage: codestyle
   script:
-    - ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/windows/toolbox/team_alpha.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/windows/toolbox/team_beta.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/windows/toolbox/team_gamma.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/windows/toolbox/team_neon.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/windows/toolbox/on_demand_software.yml -i "$INVENTORY" --syntax-check -e "target_group=toolbox_servers" -e "software_role=git"
-    - ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/windows/platform/uipath_test_manager.yml -i "$INVENTORY" --syntax-check
-    - ansible-playbook playbooks/linux/gitlab_runner.yml -i "$INVENTORY" --syntax-check
+      - echo "Linting will be used here from component from dso team"
 
-deploy:windows_toolbox:
+secrets-ansible-sevice-accounts:
+  stage: fetch-secrets
+  script:
+      - echo "secrets fetched from vault using the component from dso team"      
+
+vault-token:
+  stage: fetch-secrets
+  script:
+      - echo "vault token will be fetched using the component from dso team"      
+
+verify-roles:
+  stage: verify
+  script:
+    - ansible-playbook -i inventories/$[[ inputs.environment ]]/hosts.yml playbooks/windows/$[[ inputs.domain ]]/$[[ inputs.target ]].yml --syntax-check
+
+
+deploy-$[[inputs.environment]]-$[[inputs.domain]]-$[[inputs.target]]:
   stage: deploy
-  script:
-    - ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i "$INVENTORY"
   when: manual
-
-deploy:windows_toolbox_team_alpha:
-  stage: deploy
   script:
-    - ansible-playbook playbooks/windows/toolbox/team_alpha.yml -i "$INVENTORY"
-  when: manual
-
-deploy:windows_toolbox_team_beta:
-  stage: deploy
-  script:
-    - ansible-playbook playbooks/windows/toolbox/team_beta.yml -i "$INVENTORY"
-  when: manual
-
-deploy:windows_toolbox_team_gamma:
-  stage: deploy
-  script:
-    - ansible-playbook playbooks/windows/toolbox/team_gamma.yml -i "$INVENTORY"
-  when: manual
-
-deploy:windows_toolbox_team_neon:
-  stage: deploy
-  script:
-    - ansible-playbook playbooks/windows/toolbox/team_neon.yml -i "$INVENTORY"
-  when: manual
-
-deploy:windows_toolbox_on_demand_software:
-  stage: deploy
-  variables:
-    INVENTORY: inventories/lab
-    TARGET_GROUP: ""
-    SOFTWARE_ROLE: ""
-  script:
-    - test -n "$INVENTORY" || (echo "INVENTORY is required." && exit 1)
-    - test -n "$TARGET_GROUP" || (echo "TARGET_GROUP is required." && exit 1)
-    - test -n "$SOFTWARE_ROLE" || (echo "SOFTWARE_ROLE is required." && exit 1)
-    - test -e "$INVENTORY" || (echo "INVENTORY '$INVENTORY' does not exist." && exit 1)
-    - ansible-playbook playbooks/windows/toolbox/on_demand_software.yml -i "$INVENTORY" -e "target_group=$TARGET_GROUP" -e "software_role=$SOFTWARE_ROLE"
-  when: manual
-
-deploy:windows_uipath_orchestrator:
-  stage: deploy
-  script:
-    - ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml -i "$INVENTORY"
-  when: manual
-
-deploy:windows_uipath_test_manager:
-  stage: deploy
-  script:
-    - ansible-playbook playbooks/windows/platform/uipath_test_manager.yml -i "$INVENTORY"
-  when: manual
-
-deploy:linux_runner:
-  stage: deploy
-  script:
-    - ansible-playbook playbooks/linux/gitlab_runner.yml -i "$INVENTORY"
-  when: manual
+    - ansible-playbook -i inventories/$[[ inputs.environment ]]/hosts.yml playbooks/windows/$[[ inputs.domain ]]/$[[ inputs.target ]].yml

@@ -46,8 +46,6 @@ default:
     - python --version
     - echo "Using dummy pipeline flow"
 
-variables:
-  ANSIBLE_CONFIG: ansible.cfg
 
 verify:
   stage: verify
