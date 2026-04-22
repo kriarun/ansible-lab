@@ -1,5 +1,5 @@
 - name: Windows Toolbox Team Alpha
-  hosts: team_toolbox_alpha
+  hosts: team_alpha
   gather_facts: false
 
   vars_files:

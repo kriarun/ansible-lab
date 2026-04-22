@@ -1,5 +1,5 @@
 - name: Windows Toolbox Team Beta
-  hosts: team_toolbox_beta
+  hosts: team_beta
   gather_facts: false
 
   vars_files:

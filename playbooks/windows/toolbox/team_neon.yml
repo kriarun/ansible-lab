@@ -1,5 +1,5 @@
 - name: Windows Toolbox Team Neon
-  hosts: team_toolbox_neon
+  hosts: team_neon
   gather_facts: false
 
   vars_files:
