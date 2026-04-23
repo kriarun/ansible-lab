@@ -1,368 +1,267 @@
-# Infrastructure Automation Platform (Ansible)
+# Infrastructure Automation Platform
 
-## Purpose
+This repository contains an Ansible-based automation platform for provisioning and maintaining standardized Windows and Linux machines across multiple environments.
 
-This repository contains the **infrastructure automation framework** used to provision and maintain standardized machines across environments using **Ansible**.
+The current codebase is centered around:
 
-The platform provides a structured way to manage:
+- Windows toolbox machines composed from shared and team-specific profiles
+- Windows UiPath platform machines composed from machine profiles
+- Linux GitLab runner machines
+- Environment-specific inventory and override layers
+- A parameterized GitLab CI pipeline for syntax-check and deployment entry points
 
-* Windows toolbox servers
-* UiPath automation servers
-* Linux GitLab runners
-* Standardized developer environments
-* Environment-specific infrastructure configuration
+## How The Repository Is Organized
 
-The repository follows a **profile-driven automation model**, where machines are defined declaratively using profiles and software catalogs instead of hardcoded playbooks.
+The automation model is intentionally data-driven:
 
-The goal is to ensure **consistent, reproducible, and maintainable infrastructure provisioning** across environments.
+1. Inventories decide where automation runs.
+2. Profiles decide what a machine should contain.
+3. Software catalog entries define how packages are sourced and installed.
+4. Roles implement reusable execution logic.
+5. Playbooks compose profiles and roles into runnable entry points.
 
----
+## Repository Layout
 
-# Platform Architecture
-
-The automation framework is organized around several core layers.
-
-```id="arch-flow"
-Inventory
-   ↓
-Machine Profiles
-   ↓
-Software Catalog
-   ↓
-Resolver Layer
-   ↓
-Execution Plan
-   ↓
-Reusable Roles
-```
-
-### Inventory
-
-Defines **where automation runs**.
-
-Inventories represent environments such as:
-
-* Lab
-* Test
-* Production
-
-Each inventory contains:
-
-* host definitions
-* environment variables
-* environment overrides
-
----
-
-### Machine Profiles
-
-Profiles define **what a machine should contain**.
-
-A machine configuration can be composed from multiple layers:
-
-```id="profile-model"
-Base Profile
-   + Team Profile
-   + Machine Profile
-   = Final Machine Configuration
-```
-
-This allows different teams to extend shared machine definitions while keeping a common baseline.
-
----
-
-### Software Catalog
-
-The software catalog defines **software packages and installation metadata**.
-
-Each catalog entry contains:
-
-* installer source
-* installation type
-* installation arguments
-* validation checks
-
-This design separates **software metadata** from **installation logic**.
-
----
-
-### Resolver Layer
-
-Resolvers determine **how installers are obtained**.
-
-Supported installer sources may include:
-
-* network shares
-* artifact repositories
-* local installer caches
-* copied artifacts
-
-Resolvers allow installation sources to evolve without modifying role logic.
-
----
-
-### Execution Plan
-
-The execution plan translates the desired machine configuration into installation steps.
-
-```id="execution-flow"
-software list
-   ↓
-resolve installer
-   ↓
-build execution plan
-   ↓
-install software
-   ↓
-verify installation
-```
-
-This keeps installation workflows generic and reusable.
-
----
-
-### Roles
-
-Roles implement the actual configuration logic.
-
-Roles are designed to be **reusable and data-driven**, relying on profile and catalog definitions rather than hardcoded installation steps.
-
----
-
-# Repository Structure
-
-```id="repo-structure"
+```text
 inventories/
-  lab/                     Lab environment inventory
-  prd/                     Production environment structure
+  dev/
+  lab/
+  prd/
+  sandbox/
+  tst/
+  group_vars/
 
 playbooks/
   linux/
-    gitlab_runner.yml      Linux runner provisioning
+    gitlab_runner.yml
   windows/
     platform/
       uipath_orchestrator.yml
       uipath_test_manager.yml
     toolbox/
-      toolbox_servers.yml      Windows toolbox server setup
-      on_demand_software.yml  Single software install on one target group
+      team_alpha.yml
+      team_beta.yml
+      team_gamma.yml
+      team_neon.yml
 
 profiles/
-  linux/                   Linux machine profiles
-  windows/                 Windows machine profiles
-  */software_catalog/      Software metadata definitions
+  linux/
+    machines/
+    software_catalog.yml
+  windows/
+    machines/
+    software_catalog/
+    toolbox/
 
 roles/
-  linux/                   Linux automation roles
-  windows/                 Windows automation roles
+  linux/
+  windows/
 
-ansible.cfg                Global Ansible configuration
-README.md                  Repository documentation
+docs/
+  architecture/
+  how-to/
+  reference/
 ```
 
----
+## Inventory Model
 
-# Environments
+Environment inventories live under `inventories/<environment>/`.
 
-Automation is executed against environment-specific inventories.
+Current environments in the repo:
 
-Typical environments include:
+- `lab`
+- `dev`
+- `tst`
+- `prd`
+- `sandbox`
 
-| Environment | Purpose                         |
-| ----------- | ------------------------------- |
-| **lab**     | experimentation and development |
-| **test**    | validation before production    |
-| **prd**     | production infrastructure       |
+Environment intent at a high level:
 
-Environment configuration is defined under:
+- `sandbox` is the safe development inventory for Ansible work. It exists so playbooks, role composition, and changes can be developed and executed without using `lab`.
+- `lab` is not treated as the primary development space for Ansible changes. It serves a different operational purpose and should not be the default place for day-to-day automation development.
+- `dev`, `tst`, and `prd` represent the more standard progression toward validated and production usage.
 
-```id="env-path"
-inventories/<environment>/
+Common patterns:
+
+- `hosts.yml` defines the inventory structure for that environment.
+- `group_vars/windows.yml` carries shared Windows connection settings.
+- Group-specific files such as `group_vars/uipath_orchestrator.yml` or `group_vars/team_neon.yml` provide targeted overrides.
+- `inventories/group_vars/` holds cross-environment defaults.
+
+## Profile Model
+
+The repository currently uses two main Windows composition styles.
+
+### Toolbox Profiles
+
+Toolbox playbooks combine:
+
+- `profiles/windows/toolbox/base.yml`
+- one team profile such as `profiles/windows/toolbox/team_alpha.yml`
+- optional environment additions and removals from inventory vars
+
+The resulting role set is derived from:
+
+```text
+base_roles + team_roles + env_add_roles - remove_roles - env_remove_roles
 ```
 
----
+Role-layer intent:
 
-# Running Automation
+- `base_roles` is used for toolbox machines to define the baseline software set that should normally exist everywhere for that toolbox type.
+- `team_roles` adds team-specific software on top of the toolbox baseline.
+- `env_add_roles` is used when a role should exist only in one environment such as `sandbox`, `dev`, or `lab`, which makes controlled rollout easier.
+- `env_remove_roles` is used when a role should be excluded only in one environment, again to support safer staged rollout and environment-specific exceptions.
+- `remove_roles` is used to remove a role for a more specific target such as a machine or group, without changing the broader shared profile intent.
 
-Automation is executed using standard Ansible commands.
+### Platform Machine Profiles
+
+UiPath playbooks load a machine profile directly from:
+
+```text
+profiles/windows/machines/
+```
+
+Each machine profile defines:
+
+- `machine_roles`
+- package lists consumed by those roles
+- optional machine-level environment variables via `machine_env`
+
+### Linux Profiles
+
+Linux currently uses:
+
+- `profiles/linux/machines/gitlab_runner.yml`
+- `profiles/linux/software_catalog.yml`
+
+This path is present but still much lighter than the Windows implementation.
+
+## Software Catalog Model
+
+Windows software metadata is split into catalog fragments under:
+
+```text
+profiles/windows/software_catalog/
+```
+
+Examples currently in the repo include:
+
+- `git.yml`
+- `python.yml`
+- `vscode.yml`
+- `dotnet_hosting.yml`
+- `uipath_orchestrator_migration.yml`
+
+Catalog entries describe package metadata such as:
+
+- source type
+- installer file details
+- installation arguments
+- verification checks
+- optional PATH, environment, registry, or certificate configuration
+
+Windows roles generally resolve and install packages through the shared helper:
+
+```text
+roles/windows/common/tasks/install_from_catalog.yml
+```
+
+## Playbook Entry Points
+
+Current playbooks:
+
+### Windows toolbox
+
+- `playbooks/windows/toolbox/team_alpha.yml`
+- `playbooks/windows/toolbox/team_beta.yml`
+- `playbooks/windows/toolbox/team_gamma.yml`
+- `playbooks/windows/toolbox/team_neon.yml`
+
+These playbooks compute a final role set from toolbox profile layers. They are currently written in a debug/composition-first style and gate role execution behind `execute_roles`.
+
+### Windows platform
+
+- `playbooks/windows/platform/uipath_orchestrator.yml`
+- `playbooks/windows/platform/uipath_test_manager.yml`
+
+These playbooks load a machine profile, compute `final_roles`, and execute the matching Windows roles.
+
+### Linux
+
+- `playbooks/linux/gitlab_runner.yml`
+
+This playbook loads the Linux profile and executes the `linux/gitlab_runner` role.
+
+## Running Playbooks
+
+Use an explicit environment inventory when invoking Ansible.
+
+Examples:
+
+```powershell
+ansible-playbook -i inventories/lab/hosts.yml playbooks/windows/platform/uipath_orchestrator.yml
+ansible-playbook -i inventories/dev/hosts.yml playbooks/windows/platform/uipath_test_manager.yml
+ansible-playbook -i inventories/prd/hosts.yml playbooks/linux/gitlab_runner.yml
+```
+
+For toolbox playbooks, the current pattern is team-specific. If you want role execution rather than composition/debug output, pass `execute_roles=true`.
+
+In practice, the recommended development path is to validate new toolbox changes in `sandbox` first, then promote them through the other environments as needed.
 
 Example:
 
-```id="run-toolbox"
-ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i inventories/lab
+```powershell
+ansible-playbook -i inventories/sandbox/hosts.yml playbooks/windows/toolbox/team_neon.yml -e "execute_roles=true"
 ```
 
-Example for production:
+## CI/CD Pipeline
 
-```id="run-prd"
-ansible-playbook playbooks/linux/gitlab_runner.yml -i inventories/prd
+The starter GitLab pipeline is defined in [`.gitlab-ci.yml`](.gitlab-ci.yml).
+
+It currently exposes three key inputs:
+
+- `environment`: `lab`, `dev`, `tst`, `prd`, or `sandbox`
+- `domain`: `toolbox` or `platform`
+- `target`: playbook target inside that domain
+
+Current stages:
+
+- `codestyle`
+- `verify`
+- `fetch-secrets`
+- `deploy`
+
+The `verify-roles` job performs a syntax check using:
+
+```text
+ansible-playbook -i inventories/<environment>/hosts.yml playbooks/windows/<domain>/<target>.yml --syntax-check
 ```
 
-Execution should always target the appropriate inventory.
+The deploy job runs the same playbook as a manual step.
 
----
+## Contribution Guidelines
 
-# CI/CD Direction
+- Keep machine intent in profiles, not in playbooks.
+- Keep package metadata in the software catalog, not in role task files.
+- Prefer shared logic under `roles/windows/common/tasks/` when adding Windows install behavior.
+- Validate changes in non-production inventories before using `prd`.
+- Do not store secrets in the repository.
 
-In real usage, these playbooks are expected to be triggered from a GitLab pipeline.
+## Documentation Map
 
-The pipeline design is still evolving, but the current preferred direction is:
+For deeper guidance, use:
 
-- one GitLab job per playbook
-- one inventory target per pipeline run
-- clear separation between toolbox, UiPath, and Linux runner executions
+- [Architecture overview](docs/architecture/arc42-architecture.md)
+- [How to add a role](docs/how-to/add-a-role.md)
+- [How to add a software catalog entry](docs/how-to/add-a-software-catalog-entry.md)
+- [Machine profile examples](docs/reference/machine-profile-examples.md)
+- [Software catalog examples](docs/reference/software-catalog-examples.md)
+- [Future considerations](docs/reference/future-considerations.md)
 
-Examples of likely job-to-playbook mapping:
+## Current State Notes
 
-- `windows_toolbox` job -> `playbooks/windows/toolbox/toolbox_servers.yml`
-- `windows_toolbox_on_demand_software` job -> `playbooks/windows/toolbox/on_demand_software.yml`
-- `windows_uipath_orchestrator` job -> `playbooks/windows/platform/uipath_orchestrator.yml`
-- `windows_uipath_test_manager` job -> `playbooks/windows/platform/uipath_test_manager.yml`
-- `linux_runner` job -> `playbooks/linux/gitlab_runner.yml`
-
-This keeps pipeline execution simple and makes it easier to:
-
-- rerun one machine category without affecting others
-- review failures by playbook
-- introduce approvals or environment-specific controls later
-
-## Operator Note
-
-Use the full provisioning playbooks when the intent is to apply the normal machine composition for toolbox, UiPath, or Linux hosts.
-
-Use `playbooks/windows/toolbox/on_demand_software.yml` only for a surgical Windows toolbox install of exactly one software role on exactly one target group. This path does not load base roles, does not load team composition, and does not compute `final_roles`.
-
-Detailed GitLab pipeline implementation is not finalized yet and can be added later once the execution model is confirmed.
-
-A starter pipeline draft is available in `.gitlab-ci.yml`.
-
----
-
-# Adding a New Machine
-
-To provision a new machine type:
-
-1. Create a **machine profile** under `profiles/<os>/machines/`
-2. Define required software packages
-3. Reference the profile in a playbook or host group
-4. Add the host to the appropriate inventory
-
----
-
-# Adding New Software
-
-To introduce a new software package:
-
-1. Add an entry to the **software catalog**
-
-Example location:
-
-```id="catalog-path"
-profiles/windows/software_catalog/
-profiles/linux/software_catalog/
-```
-
-2. Define:
-
-* installer source
-* installation type
-* installation arguments
-* validation checks
-
-3. Reference the software key in the relevant machine profile.
-
----
-
-# Design Principles
-
-The automation framework follows several guiding principles.
-
-### Declarative Configuration
-
-Machines should describe **desired state**, not imperative steps.
-
----
-
-### Reusable Roles
-
-Roles should remain **generic and reusable**, relying on configuration data instead of embedded logic.
-
----
-
-### Separation of Concerns
-
-Infrastructure definition, software metadata, and installation logic should remain independent layers.
-
----
-
-### Environment Isolation
-
-Each environment must remain isolated through dedicated inventories and variables.
-
----
-
-# Safety Guidelines
-
-To ensure platform stability and security:
-
-* Secrets must **never be stored in the repository**
-* Installer sources must come from **approved internal locations**
-* Production inventory changes require **peer review**
-* New software definitions must include **verification checks**
-
----
-
-# Contribution Guidelines
-
-When contributing changes:
-
-1. Follow the existing repository structure
-2. Avoid hardcoding installation logic inside playbooks
-3. Prefer catalog-driven software definitions
-4. Validate changes in **lab or test environments** before production usage
-5. Submit changes through the standard review process
-
----
-
-# Contributor How-To
-
-For task-oriented contributor documentation and examples, see:
-
-* [docs/architecture/arc42-architecture.md](docs/architecture/arc42-architecture.md)
-* [docs/how-to/add-a-role.md](docs/how-to/add-a-role.md)
-* [docs/how-to/add-a-software-catalog-entry.md](docs/how-to/add-a-software-catalog-entry.md)
-* [docs/reference/software-catalog-examples.md](docs/reference/software-catalog-examples.md)
-* [docs/reference/machine-profile-examples.md](docs/reference/machine-profile-examples.md)
-* [docs/reference/future-considerations.md](docs/reference/future-considerations.md)
-
----
-
-# Status
-
-This repository represents the **automation platform used to standardize machine provisioning** across environments.
-
-The platform will continue evolving to support:
-
-* additional machine types
-* improved software catalog models
-* enhanced installer resolution mechanisms
-* CI/CD integration for automation workflows
-
-
-# Ansible Lab
-
-Phase 1 – Debug Implementation
-
-## Architecture Layers
-
-1. Inventory Layer – Environment & machine grouping
-2. Blueprint Layer – Role definitions (base, team, machine)
-3. Role Layer – Execution logic (debug-only for now)
-
-## Run
-
-ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml
-ansible-playbook playbooks/windows/toolbox/on_demand_software.yml -i inventories/lab -e "target_group=toolbox_servers" -e "software_role=git"
-ansible-playbook playbooks/windows/platform/uipath_orchestrator.yml
-ansible-playbook playbooks/windows/platform/uipath_test_manager.yml
-ansible-playbook playbooks/linux/gitlab_runner.yml
+- Windows is the most developed automation path in this repo today.
+- Toolbox and platform playbooks follow different composition patterns.
+- Linux is present but still more lightweight and debug-oriented.
+- The GitLab pipeline is a solid starter, but the full operational workflow is still evolving.

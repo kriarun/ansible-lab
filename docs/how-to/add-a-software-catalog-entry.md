@@ -1,68 +1,52 @@
-# Add a Software Catalog Entry
+# Add A Software Catalog Entry
 
-Use this guide when you want to register a new package in the software catalog.
+Use this guide when you want to register a new package in the automation platform.
 
-Windows catalog files live under:
+For Windows, catalog fragments live under:
 
 ```text
 profiles/windows/software_catalog/
 ```
 
-## 1. Choose a software key
+Each fragment usually groups related package entries, for example `git.yml` or `python.yml`.
 
-Use a clear key that includes the software name and version.
+## 1. Pick The Catalog Fragment
+
+Choose whether to:
+
+- add a package to an existing fragment such as `git.yml`
+- create a new fragment such as `maven.yml`
+
+Keep the fragment name aligned with the role that will consume it.
+
+## 2. Choose A Clear Package Key
+
+Use a stable key that includes product and version information.
 
 Examples:
 
 - `git_2_44_0`
 - `python_3_13_2`
-- `vscode_1_87_0`
+- `dotnet-hosting-8.0.13-win`
 
-## 2. Add the package definition
+## 3. Add The Package Definition
 
-Each entry should define:
+Each package entry should define at least:
 
 - `source`
 - `install`
-- optional `path`
-- optional `env`
-- optional `registry`
-- optional `certificate`
 
-Minimal example:
+Optional sections currently supported by the shared Windows flow include:
 
-```yaml
-git_2_44_0:
-  source:
-    type: local
-    path: "D:\\ManualDrops"
-    filename: "Git-2.44.0-64-bit.exe"
-  install:
-    type: exe
-    arguments: "/VERYSILENT"
-    check:
-      path_exists: "C:\\Program Files\\Git\\bin\\git.exe"
-```
-
-## 3. Reference the key from a role variable
-
-The catalog entry is only metadata. A role or profile must reference the key.
+- `path`
+- `env`
+- `registry`
+- `certificate`
 
 Example:
 
 ```yaml
-git_packages:
-  - git_2_44_0
-```
-
-## 4. Add optional configuration
-
-If the software also needs path entries, environment variables, registry entries, or certificates, add them to the same catalog item.
-
-Example:
-
-```yaml
-maven:
+maven_3_9_9:
   source:
     type: local
     path: "D:\\ManualDrops"
@@ -82,8 +66,56 @@ maven:
       MAVEN_HOME: "C:\\Tools\\apache-maven-3.9.9"
 ```
 
+## 4. Add A Verification Check
+
+Always include an installation verification marker under:
+
+```yaml
+install:
+  check:
+    path_exists: ...
+```
+
+This is the primary validation pattern used by the current execution flow.
+
+## 5. Reference The Package Key From A Profile
+
+The catalog entry is just metadata until a profile includes the corresponding package key.
+
+Example:
+
+```yaml
+maven_packages:
+  - maven_3_9_9
+```
+
+That variable should live in the same profile layer that owns the role:
+
+- toolbox base profile
+- toolbox team profile
+- machine profile
+
+## 6. Make Sure The Role Consumes The Right Fragment
+
+The matching role should call `install_from_catalog.yml` with:
+
+- `software_catalog_entry`: the fragment file name, for example `maven.yml`
+- `software_package_list`: the package variable, for example `maven_packages`
+
+Example:
+
+```yaml
+- name: Install Maven packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: maven.yml
+    software_package_list: "{{ maven_packages | default([]) }}"
+    software_role_name: maven
+```
+
 ## Notes
 
 - Put installation metadata in the catalog, not in the role.
-- Always include a verification check under `install.check`.
-- Use the examples document for source-type and optional-section patterns.
+- Keep package keys versioned so profile intent stays explicit.
+- Reuse the examples document for source-type and optional-section patterns.
+- If you are adding machine-wide environment settings unrelated to one package, consider whether they belong in `machine_env` instead.

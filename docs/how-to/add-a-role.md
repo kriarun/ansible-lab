@@ -1,10 +1,24 @@
-# Add a Role
+# Add A Role
 
-Use this guide when you want to add a new Windows role such as `git`, `python`, or `dotnet`.
+Use this guide when you want to add a new role to the automation platform.
 
-## 1. Create the role folder
+The current repository has two different role patterns:
 
-Create a task file for the new role:
+- Windows roles usually install catalog-defined packages through shared common tasks.
+- Linux roles are currently much lighter and may still be debug-oriented.
+
+## 1. Choose The Role Scope
+
+Decide whether the role belongs under:
+
+- `roles/windows/<role_name>/`
+- `roles/linux/<role_name>/`
+
+Most new install-oriented work in this repo will currently be a Windows role.
+
+## 2. Create The Role Task File
+
+Create:
 
 ```text
 roles/windows/<role_name>/tasks/main.yml
@@ -13,53 +27,64 @@ roles/windows/<role_name>/tasks/main.yml
 Example:
 
 ```text
-roles/windows/git/tasks/main.yml
+roles/windows/maven/tasks/main.yml
 ```
 
-## 2. Define the role logic
+## 3. Follow The Current Windows Pattern
 
-Keep the role data-driven. The role should consume package keys from profiles instead of hardcoding installer details.
+Most Windows roles call the shared installer helper rather than duplicating resolver logic.
 
 Example:
 
 ```yaml
-- name: Initialize resolved list
-  ansible.builtin.set_fact:
-    resolved_packages: []
-
-- name: Resolve packages
-  ansible.builtin.include_tasks: ../../common/tasks/resolve_installer.yml
-  loop: "{{ git_packages }}"
-  loop_control:
-    loop_var: software_key
-
-- name: Execute installation plan
-  ansible.builtin.include_tasks: ../../common/tasks/execute_plan.yml
-  loop: "{{ resolved_packages }}"
-  loop_control:
-    loop_var: pkg
+- name: Install Maven packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: maven.yml
+    software_package_list: "{{ maven_packages | default([]) }}"
+    software_role_name: maven
 ```
 
-## 3. Define the role variable in a profile
+This keeps package resolution and installation behavior consistent across roles.
 
-Add the package list expected by the role in a profile file.
+## 4. Add The Matching Software Catalog Fragment
+
+If the role installs software, create or update the catalog fragment under:
+
+```text
+profiles/windows/software_catalog/
+```
 
 Example:
 
-```yaml
-git_packages:
-  - git_2_44_0
+```text
+profiles/windows/software_catalog/maven.yml
 ```
 
-## 4. Attach the role to a profile
+The file should contain the package keys referenced by the role.
 
-Choose the correct profile layer:
+## 5. Define The Package List In A Profile
 
-- `base_roles` for shared roles used by many machines
-- `team_roles` for team-specific roles
-- `machine_roles` for machine-specific roles
+Profiles provide the package list consumed by the role.
 
 Examples:
+
+```yaml
+maven_packages:
+  - maven_3_9_9
+```
+
+Depending on the use case, define that variable in:
+
+- `profiles/windows/toolbox/base.yml`
+- `profiles/windows/toolbox/team_<name>.yml`
+- `profiles/windows/machines/<machine>.yml`
+
+## 6. Attach The Role To The Right Profile Layer
+
+Choose the profile variable that matches the composition style.
+
+For toolbox:
 
 ```yaml
 base_roles:
@@ -67,26 +92,44 @@ base_roles:
   - vscode
 ```
 
+or:
+
 ```yaml
 team_roles:
   - dotnet_hosting
 ```
 
+For platform machines:
+
 ```yaml
 machine_roles:
-  - git
+  - maven
 ```
 
-## 5. Run the playbook
+## 7. Reuse Common Tasks For Extra Configuration
 
-Run the playbook that targets the machine type:
+If the software needs PATH entries, environment variables, registry values, or certificates, prefer the shared helpers already used by the execution layer instead of adding special-case task logic inside the role.
+
+Relevant helpers live under:
+
+```text
+roles/windows/common/tasks/
+```
+
+## 8. Run A Relevant Playbook
+
+Examples:
 
 ```powershell
-ansible-playbook playbooks/windows/toolbox/toolbox_servers.yml -i inventories/lab
+ansible-playbook -i inventories/lab/hosts.yml playbooks/windows/platform/uipath_test_manager.yml
+ansible-playbook -i inventories/sandbox/hosts.yml playbooks/windows/toolbox/team_neon.yml -e "execute_roles=true"
 ```
+
+Pick the playbook that actually consumes the profile layer you changed.
 
 ## Notes
 
 - Keep installer source details in the software catalog, not in the role.
-- Reuse common tasks such as `resolve_installer.yml`, `execute_plan.yml`, `add_path.yml`, and environment-variable tasks where possible.
-- Prefer adding new behavior in reusable common tasks instead of embedding special-case logic in one role.
+- Prefer `install_from_catalog.yml` unless there is a clear reason not to.
+- Keep role names aligned with the package variable they consume, for example `maven` and `maven_packages`.
+- If you add a Windows role with machine-level environment settings, consider whether `machine_configuration` should remain separate from the software-install role.

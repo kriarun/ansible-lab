@@ -1,128 +1,148 @@
 # arc42 Architecture Overview
 
-## 1. Introduction and Goals
+## 1. Introduction And Goals
 
 This repository provides an Ansible-based automation platform for provisioning and maintaining standardized machines across environments.
 
-The current focus is on:
+The current implementation focuses on:
 
-- Windows toolbox servers
-- Windows UiPath-related machines
+- Windows toolbox machines
+- Windows UiPath platform machines
 - Linux GitLab runner machines
 
-The main architectural goal is to keep machine provisioning declarative and data-driven.
+Primary goals:
 
-Desired outcomes:
+- keep machine intent in profiles instead of playbooks
+- keep software metadata in a catalog instead of roles
+- reuse installation logic through shared task fragments
+- preserve environment isolation through dedicated inventories
+- support repeatable execution from GitLab CI/CD
 
-- machine definitions live in profiles, not playbooks
-- software installation metadata lives in a software catalog
-- execution logic stays reusable through shared roles and task fragments
-- inventories remain environment-specific
-- future CI/CD execution can trigger playbooks consistently from GitLab
+## 2. Constraints
 
-## 2. Architecture Constraints
-
-The current implementation shows several practical constraints:
+The codebase currently reflects these constraints:
 
 - Ansible is the orchestration engine.
-- Windows automation is the most developed path in the repository today.
-- Playbooks are organized per machine category, not as a single universal playbook.
-- Profiles are layered differently for toolbox and machine-specific flows.
-- Software metadata is split into YAML fragments under the Windows software catalog directory.
-- The intended future execution path is GitLab CI/CD, currently represented by a starter [`.gitlab-ci.yml`](c:/Arun/Learning/Anisble/ansible-lab/.gitlab-ci.yml).
+- Windows automation is the most mature path.
+- Toolbox and platform playbooks use different profile-composition patterns.
+- Linux exists, but is still lighter and more debug-oriented than Windows.
+- GitLab CI/CD is modeled through a starter pipeline in [`.gitlab-ci.yml`](../../.gitlab-ci.yml).
 
-## 3. System Scope and Context
+## 3. Scope And Context
 
 ### Business Context
 
 The platform sits between infrastructure intent and machine execution.
 
-Main actors and systems:
+Key actors and systems:
 
-- infrastructure engineers maintaining profiles, roles, and catalog entries
-- GitLab CI/CD, expected to trigger playbook execution in future
-- target Windows and Linux machines
-- artifact sources such as local folders, JFrog, and network shares
+- infrastructure engineers maintaining inventories, profiles, roles, and catalog entries
+- GitLab CI/CD jobs invoking playbooks
+- Windows and Linux target hosts
+- software sources such as local paths, JFrog, and file shares
 
 ### Technical Context
 
-The technical flow for Windows is:
+The common Windows flow is:
 
-1. inventory selects target hosts
-2. playbook loads profile variables
-3. playbook computes final roles
-4. included roles resolve software metadata from the catalog
-5. common tasks resolve installer source details
-6. installation tasks execute package installation
-7. optional post-install tasks configure PATH, environment variables, registry, and certificates
+1. select hosts from an environment inventory
+2. load profile data
+3. compute `final_roles`
+4. resolve software metadata from catalog fragments
+5. normalize installer details
+6. execute installation tasks
+7. apply optional post-install configuration such as PATH, env vars, registry, or certificates
 
 ## 4. Solution Strategy
 
-The central strategy is separation of concerns:
+The design is based on separation of concerns:
 
 - inventories define where automation runs
 - profiles define what a machine should contain
-- software catalog entries define how software is sourced and installed
-- roles define reusable execution behavior
-- common tasks implement shared resolver and configuration logic
+- software catalog entries define how packages are installed
+- roles define reusable behavior
+- common task files implement shared resolution and execution logic
 
-A second strategy is progressive abstraction:
+Another important strategy is progressive composition:
 
-- machine and toolbox playbooks compose roles from profile data
-- roles consume package keys such as `git_packages` or `python_packages`
-- `resolve_installer.yml` converts catalog metadata into normalized `resolved_item` structures
-- `execute_plan.yml` performs installation and verification from that normalized structure
+- toolbox playbooks combine base, team, and environment layers
+- platform playbooks load one machine profile directly
+- common Windows helpers turn heterogeneous package definitions into a normalized install plan
 
 ## 5. Building Block View
 
 ### Level 1
 
-The major building blocks are:
+The top-level building blocks are:
 
 - `inventories/`
 - `playbooks/`
 - `profiles/`
 - `roles/`
 - `docs/`
-- [`.gitlab-ci.yml`](c:/Arun/Learning/Anisble/ansible-lab/.gitlab-ci.yml)
+- [`.gitlab-ci.yml`](../../.gitlab-ci.yml)
 
 ### Level 2
 
 #### Inventories
 
-Inventories define host groups and environment-specific variables.
+Inventories define host groups and environment-specific settings.
 
-Examples:
+Current environment directories:
 
-- [hosts.yml](c:/Arun/Learning/Anisble/ansible-lab/inventories/lab/hosts.yml)
-- [all.yml](c:/Arun/Learning/Anisble/ansible-lab/inventories/lab/group_vars/all.yml)
-- [toolbox_servers.yml](c:/Arun/Learning/Anisble/ansible-lab/inventories/prd/group_vars/toolbox_servers.yml)
+- `inventories/dev/`
+- `inventories/lab/`
+- `inventories/prd/`
+- `inventories/sandbox/`
+- `inventories/tst/`
+
+Current environment intent:
+
+- `sandbox` is the primary safe environment for Ansible development and execution during change development.
+- `lab` exists for a different purpose and is not the preferred place to develop and trial normal Ansible changes.
+- other environments support the broader promotion path toward validated and production rollout.
+
+Common files:
+
+- [inventories/group_vars/all.yml](../../inventories/group_vars/all.yml)
+- [inventories/lab/hosts.yml](../../inventories/lab/hosts.yml)
+- [inventories/dev/hosts.yml](../../inventories/dev/hosts.yml)
+- [inventories/prd/hosts.yml](../../inventories/prd/hosts.yml)
+- [inventories/lab/group_vars/windows.yml](../../inventories/lab/group_vars/windows.yml)
 
 Important current groups include:
 
-- `toolbox_servers`
-- `team_toolbox_alpha`
+- `team_alpha`
+- `team_beta`
+- `team_gamma`
+- `team_neon`
 - `uipath_orchestrator`
 - `uipath_test_manager`
 - `linux_gitlab_runner`
 
 #### Playbooks
 
-Playbooks are the top-level orchestration entry points.
+Playbooks are the top-level entry points.
 
-- [windows_toolbox.yml](c:/Arun/Learning/Anisble/ansible-lab/playbooks/windows_toolbox.yml)
-- [windows_uipath.yml](c:/Arun/Learning/Anisble/ansible-lab/playbooks/windows_uipath.yml)
-- [linux_runner.yml](c:/Arun/Learning/Anisble/ansible-lab/playbooks/linux_runner.yml)
+Current playbooks:
+
+- [playbooks/windows/toolbox/team_alpha.yml](../../playbooks/windows/toolbox/team_alpha.yml)
+- [playbooks/windows/toolbox/team_beta.yml](../../playbooks/windows/toolbox/team_beta.yml)
+- [playbooks/windows/toolbox/team_gamma.yml](../../playbooks/windows/toolbox/team_gamma.yml)
+- [playbooks/windows/toolbox/team_neon.yml](../../playbooks/windows/toolbox/team_neon.yml)
+- [playbooks/windows/platform/uipath_orchestrator.yml](../../playbooks/windows/platform/uipath_orchestrator.yml)
+- [playbooks/windows/platform/uipath_test_manager.yml](../../playbooks/windows/platform/uipath_test_manager.yml)
+- [playbooks/linux/gitlab_runner.yml](../../playbooks/linux/gitlab_runner.yml)
 
 Observed patterns:
 
-- toolbox flow layers `base.yml` plus optional team blueprint variables
-- UiPath flow loads a machine profile directly
-- Linux flow currently uses a different variable path pattern and appears less aligned with the Windows structure
+- toolbox playbooks load `base.yml` plus one team profile and compute a merged role list
+- platform playbooks load one machine profile and execute its `machine_roles`
+- Linux currently uses a direct vars-file pattern
 
 #### Profiles
 
-Profiles are the declarative source of desired machine state.
+Profiles are the declarative source of desired state.
 
 Windows profile areas:
 
@@ -130,199 +150,198 @@ Windows profile areas:
 - `profiles/windows/machines/`
 - `profiles/windows/software_catalog/`
 
-Current examples:
+Linux profile areas:
 
-- [base.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/toolbox/base.yml)
-- [team_alpha.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/toolbox/team_alpha.yml)
-- [uipath_orchestrator.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/machines/uipath_orchestrator.yml)
-- [uipath_test_manager.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/machines/uipath_test_manager.yml)
-- [misc.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/software_catalog/misc.yml)
+- `profiles/linux/machines/`
+- `profiles/linux/software_catalog.yml`
+
+Representative files:
+
+- [profiles/windows/toolbox/base.yml](../../profiles/windows/toolbox/base.yml)
+- [profiles/windows/toolbox/team_alpha.yml](../../profiles/windows/toolbox/team_alpha.yml)
+- [profiles/windows/machines/uipath_orchestrator.yml](../../profiles/windows/machines/uipath_orchestrator.yml)
+- [profiles/windows/machines/uipath_test_manager.yml](../../profiles/windows/machines/uipath_test_manager.yml)
+- [profiles/linux/machines/gitlab_runner.yml](../../profiles/linux/machines/gitlab_runner.yml)
 
 #### Roles
 
-Roles implement machine behavior, mostly through reusable common tasks.
+Roles implement execution behavior.
 
-Windows roles:
+Windows roles currently present include:
 
-- `common`
+- `certificate`
+- `dotnet_hosting`
 - `git`
-- `python`
-- `vscode`
-- `dotnet`
-- `postman`
+- `iis`
+- `iis_url_rewrite`
 - `machine_configuration`
+- `microsoft_dotnet_framework`
+- `microsoft_web_deploy`
+- `postman`
+- `python`
+- `uipath_orchestrator_migration`
+- `vscode`
 
-Role maturity is uneven:
+Linux roles currently present include:
 
-- `python` is the most complete role pattern today
-- `git` and `vscode` currently resolve and debug, but do not yet perform the full install flow
-- `dotnet` is still placeholder/debug-oriented
-- `postman` is present but currently empty
+- `gitlab_runner`
 
 #### Common Windows Tasks
 
-The key reusable task components are:
+The most important shared Windows task fragments are:
 
-- [load_software_catalog.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/load_software_catalog.yml)
-- [resolve_installer.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/resolve_installer.yml)
-- [resolve_jfrog.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/resolve_jfrog.yml)
-- [resolve_local.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/resolve_local.yml)
-- [resolve_share.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/resolve_share.yml)
-- [resolve_share_copy.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/resolve_share_copy.yml)
-- [execute_plan.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/execute_plan.yml)
-- [acquire_jfrog.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/acquire_jfrog.yml)
-- [add_path.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/add_path.yml)
-- [configure_environment_variables.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/configure_environment_variables.yml)
-- [add_registry.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/add_registry.yml)
+- [roles/windows/common/tasks/load_software_catalog.yml](../../roles/windows/common/tasks/load_software_catalog.yml)
+- [roles/windows/common/tasks/install_from_catalog.yml](../../roles/windows/common/tasks/install_from_catalog.yml)
+- [roles/windows/common/tasks/resolve_installer.yml](../../roles/windows/common/tasks/resolve_installer.yml)
+- [roles/windows/common/tasks/resolve_jfrog.yml](../../roles/windows/common/tasks/resolve_jfrog.yml)
+- [roles/windows/common/tasks/resolve_local.yml](../../roles/windows/common/tasks/resolve_local.yml)
+- [roles/windows/common/tasks/resolve_share.yml](../../roles/windows/common/tasks/resolve_share.yml)
+- [roles/windows/common/tasks/resolve_share_copy.yml](../../roles/windows/common/tasks/resolve_share_copy.yml)
+- [roles/windows/common/tasks/execute_plan.yml](../../roles/windows/common/tasks/execute_plan.yml)
+- [roles/windows/common/tasks/add_path.yml](../../roles/windows/common/tasks/add_path.yml)
+- [roles/windows/common/tasks/add_env.yml](../../roles/windows/common/tasks/add_env.yml)
+- [roles/windows/common/tasks/add_registry.yml](../../roles/windows/common/tasks/add_registry.yml)
+- [roles/windows/common/tasks/add_certificate.yml](../../roles/windows/common/tasks/add_certificate.yml)
+- [roles/windows/common/tasks/set_windows_env.yml](../../roles/windows/common/tasks/set_windows_env.yml)
 
 ### Level 3: Core Internal Flow
 
-The Windows software flow can be understood as these internal stages:
+The shared Windows package-install path is:
 
-1. merge software catalog fragments into `software_catalog`
-2. validate the requested software key
+1. load or merge the catalog fragment
+2. validate the requested package key
 3. normalize source metadata into `resolved_item`
-4. append normalized package data into `resolved_packages`
-5. check installation marker
-6. download or validate installer location
-7. install package
-8. verify installation marker
-9. apply optional PATH, environment, registry, or certificate configuration
+4. collect normalized entries into `resolved_packages`
+5. acquire or validate installer location
+6. run the package installation
+7. verify installation markers
+8. apply optional post-install configuration
 
 ## 6. Runtime View
 
-### Scenario 1: Toolbox Provisioning
+### Scenario 1: Toolbox Composition
 
-Observed from [windows_toolbox.yml](c:/Arun/Learning/Anisble/ansible-lab/playbooks/windows_toolbox.yml):
+Observed from the toolbox playbooks:
 
-1. target `toolbox_servers`
-2. load `profiles/windows/toolbox/base.yml`
-3. optionally load `team_alpha.yml` if the host belongs to `team_toolbox_alpha`
-4. compute `final_roles` using `base_roles + team_roles - remove_roles`
-5. include each role under `roles/windows/<role>`
+1. target one team group such as `team_alpha`
+2. load [profiles/windows/toolbox/base.yml](../../profiles/windows/toolbox/base.yml)
+3. load a team profile such as [profiles/windows/toolbox/team_alpha.yml](../../profiles/windows/toolbox/team_alpha.yml)
+4. merge `base_roles`, `team_roles`, and `env_add_roles`
+5. subtract `remove_roles` and `env_remove_roles`
+6. expose the result as `final_roles`
+7. optionally execute those roles when `execute_roles=true`
 
-### Scenario 2: UiPath Machine Provisioning
+Meaning of the layering:
 
-Observed from [windows_uipath.yml](c:/Arun/Learning/Anisble/ansible-lab/playbooks/windows_uipath.yml):
+- `base_roles` carries the baseline toolbox software set
+- `team_roles` carries team-specific additions
+- `env_add_roles` supports environment-specific rollout or experimentation
+- `env_remove_roles` supports environment-specific exclusion
+- `remove_roles` supports more targeted removal for a machine or group
 
-1. target `uipath_orchestrator`
-2. load machine profile variables
+### Scenario 2: UiPath Platform Machine Provisioning
+
+Observed from the platform playbooks:
+
+1. target `uipath_orchestrator` or `uipath_test_manager`
+2. load one machine profile from `profiles/windows/machines/`
 3. compute `final_roles` from `machine_roles`
-4. include each role
-5. optionally apply machine-level environment variables through `machine_configuration`
+4. include the corresponding Windows roles
+5. allow machine-level environment settings through `machine_configuration`
 
-### Scenario 3: Package Resolution and Install
+### Scenario 3: Catalog-Driven Package Installation
 
-Observed mainly from [resolve_installer.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/resolve_installer.yml) and [execute_plan.yml](c:/Arun/Learning/Anisble/ansible-lab/roles/windows/common/tasks/execute_plan.yml):
+Observed mainly from [install_from_catalog.yml](../../roles/windows/common/tasks/install_from_catalog.yml):
 
-1. ensure the software catalog is loaded
-2. assert that the catalog entry exists and is structurally valid
-3. route to a resolver based on `source.type`
-4. produce a normalized `resolved_item`
-5. check the install marker
-6. acquire or validate the installer
-7. install with `ansible.windows.win_package`
-8. verify using `path_exists`
+1. validate `software_catalog_entry` and `software_package_list`
+2. initialize `resolved_packages`
+3. resolve each requested package key through the catalog
+4. execute the installation plan for each resolved package
+5. emit debug information when `debug_mode=true`
 
-### Scenario 4: Future Pipeline Execution
+### Scenario 4: GitLab Pipeline Execution
 
-Planned operational flow:
+The current pipeline model is:
 
-1. GitLab pipeline triggers a job
-2. job selects one playbook
-3. job selects one inventory target
-4. Ansible executes the chosen playbook
-5. results are reviewed per playbook/job
+1. choose `environment`
+2. choose `domain`
+3. choose `target`
+4. run syntax-check for the selected Windows playbook
+5. manually deploy the same playbook
 
 ## 7. Deployment View
 
-The current deployment view is simple:
+The current deployment model is straightforward:
 
 - repository content is version-controlled in Git
-- Ansible runs from a control environment or future GitLab runner
-- target hosts are organized in inventory groups
-- installer binaries come from one of several supported source types
+- Ansible runs from an operator workstation or CI runner
+- target hosts are selected by inventory
+- installer binaries are resolved from supported source types
 
-Likely deployment units:
+The starter pipeline suggests a staged model with:
 
-- GitLab runner or operator workstation
-- Windows managed nodes
-- Linux managed nodes
-- JFrog or network share artifact source
-
-The starter pipeline in [`.gitlab-ci.yml`](c:/Arun/Learning/Anisble/ansible-lab/.gitlab-ci.yml) suggests a two-stage model:
-
-- `validate`
+- `codestyle`
+- `verify`
+- `fetch-secrets`
 - `deploy`
-
-with one manual deploy job per playbook.
 
 ## 8. Crosscutting Concepts
 
 ### Declarative Configuration
 
-Profiles and catalog entries describe desired state and installation metadata.
+Profiles and catalog entries describe desired state rather than hardcoding workflow details in playbooks.
 
-### Reuse Through Task Fragments
+### Reuse Through Shared Tasks
 
-Common task files centralize repeated behaviors such as:
-
-- source resolution
-- installation execution
-- PATH configuration
-- environment-variable configuration
-- registry changes
+Windows package handling is centralized through reusable helpers instead of repeated role-specific logic.
 
 ### Normalized Package Model
 
-Resolvers convert heterogeneous catalog entries into a normalized `resolved_item` structure used by executors.
+Resolvers convert different source definitions into a normalized structure consumed by `execute_plan.yml`.
 
-### Verification by Marker
+### Verification By Marker
 
-Installation success is currently validated through `install.check.path_exists`.
+Install success is typically checked through `install.check.path_exists`.
 
 ### Environment Layering
 
-Environment-specific variables come from inventories, while machine intent comes from profiles.
+Inventories carry environment-specific overrides, while profiles carry machine intent.
 
 ## 9. Architecture Decisions
 
-Important decisions visible in the codebase today:
+Important visible decisions include:
 
-- use multiple top-level playbooks instead of one monolithic playbook
-- compose machine behavior from profile-defined role lists
-- keep software source metadata outside roles
-- merge software catalog fragments at runtime
-- route installer handling by `source.type`
-- keep the GitLab CI model simple at first with one job per playbook
+- use multiple playbooks instead of one monolithic entry point
+- split toolbox and platform composition styles
+- store Windows software metadata in catalog fragments
+- centralize installation flow in `install_from_catalog.yml`
+- keep the CI model parameterized but simple
 
-## 10. Quality Requirements
+## 10. Quality Goals
 
-Key quality goals inferred from the repository:
+The main quality goals are:
 
-- maintainability through role and task reuse
+- maintainability through reuse
 - extensibility through catalog-driven package definitions
-- traceability through explicit profile composition and debug output
-- safety through pre-validation and post-install verification
-- operational clarity through playbook-level separation
+- traceability through explicit role composition
+- environment isolation through inventory separation
+- operational clarity through playbook-level entry points
 
-## 11. Risks and Technical Debt
+## 11. Risks And Technical Debt
 
-The codebase also shows several current risks and transitional areas:
+Current gaps visible in the repo:
 
 - Windows roles are at different maturity levels.
-- The Linux path currently uses a different variable structure than the Windows profile model.
-- `windows_uipath.yml` currently targets only `uipath_orchestrator`, while another machine profile is present but commented out.
-- `resolve_share.yml` and `resolve_share_copy.yml` do not yet align fully with the normalized install structure used elsewhere.
-- Side-by-side installation conflicts are not yet modeled for software such as Git or Chrome.
-- The current installation verification uses only file-path markers and may need richer checks later.
-- CI/CD integration is currently a draft and not yet validated in a real GitLab environment.
+- Toolbox playbooks and platform playbooks are not yet fully unified.
+- Linux automation is still much less developed than Windows.
+- The CI/CD pipeline is a starter implementation, not a finished operating model.
+- Some docs and code paths still reflect an earlier debug-focused phase of the project.
 
 ## 12. Glossary
 
-- inventory: Ansible host and environment definition
-- profile: YAML-based machine intent definition
-- software catalog: package metadata and install-source definition
-- resolver: logic that converts source metadata into executable installer details
-- resolved item: normalized package structure consumed by the installer execution flow
+- inventory: environment and host definition used by Ansible
+- profile: declarative machine intent stored in YAML
+- software catalog: installation metadata for packages
+- resolver: logic that turns source metadata into executable installer details
+- resolved package: normalized structure used by the execution layer
 - role: reusable Ansible unit that applies part of the machine configuration
