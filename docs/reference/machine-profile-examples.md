@@ -43,9 +43,9 @@ debug_mode: true
 installer_cache_dir: "C:\\Temp\\ansible\\installers"
 ```
 
-## Inventory-Driven Toolbox Overrides
+## Inventory-Driven Environment Overrides
 
-Environment inventory vars can extend or trim toolbox composition.
+Environment inventory vars can extend or trim role composition for both toolbox and platform playbooks.
 
 Example:
 
@@ -53,25 +53,37 @@ Example:
 env_add_roles:
   - iis_url_rewrite
 
+remove_roles:
+  - postman
+
 iis_url_rewrite_packages:
   - iis-url-rewrite-v2
 ```
 
-The toolbox playbooks combine:
+For toolbox playbooks, the merged role set is:
 
 ```text
 base_roles + team_roles + env_add_roles - remove_roles - env_remove_roles
 ```
 
+For platform playbooks, the current pattern is:
+
+```text
+machine_roles + env_add_roles - remove_roles - env_remove_roles
+```
+
 Practical meaning of these variables:
 
-- `base_roles`: baseline toolbox software that should usually be present everywhere for that toolbox profile
-- `team_roles`: extra roles needed only by a specific team profile
 - `env_add_roles`: roles added only in a specific environment such as `sandbox`, `dev`, or `lab` to make rollout easier and safer
 - `env_remove_roles`: roles removed only in a specific environment when that environment should temporarily or permanently exclude them
 - `remove_roles`: roles removed for a narrower target such as a specific machine or host group without changing shared profile files
 
-This layering makes it easier to promote changes gradually. A role can be introduced first in `sandbox`, later added in `dev` or `tst`, and only then become part of the broader default model.
+Toolbox-specific role layers still remain:
+
+- `base_roles`: baseline toolbox software that should usually be present everywhere for that toolbox profile
+- `team_roles`: extra roles needed only by a specific team profile
+
+This layering makes it easier to promote changes gradually across environments. A role can be introduced first in `sandbox`, later added in `dev` or `tst`, and only then become part of the broader default model.
 
 ## Machine Profile
 

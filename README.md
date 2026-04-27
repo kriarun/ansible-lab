@@ -10,15 +10,196 @@ The current codebase is centered around:
 - Environment-specific inventory and override layers
 - A parameterized GitLab CI pipeline for syntax-check and deployment entry points
 
-## How The Repository Is Organized
+## Purpose
 
-The automation model is intentionally data-driven:
+The repository follows a profile-driven automation model:
 
-1. Inventories decide where automation runs.
-2. Profiles decide what a machine should contain.
-3. Software catalog entries define how packages are sourced and installed.
-4. Roles implement reusable execution logic.
-5. Playbooks compose profiles and roles into runnable entry points.
+- inventories decide where automation runs
+- profiles decide what a machine should contain
+- software catalog entries define how packages are sourced and installed
+- shared resolver and execution tasks normalize installation behavior
+- roles apply reusable machine configuration
+- playbooks compose those layers into runnable entry points
+
+The goal is to keep machine intent declarative, reusable, and environment-aware instead of hardcoding installation behavior directly in playbooks.
+
+## Architecture Flow
+
+The high-level model is:
+
+```text
+Inventory
+   ->
+Profiles
+   ->
+Software Catalog
+   ->
+Resolver Layer
+   ->
+Execution Plan
+   ->
+Reusable Roles
+   ->
+Playbooks
+```
+
+This is not just a documentation diagram. It reflects the actual direction of the current Windows implementation, where playbooks compose profile data, shared tasks normalize package metadata, and roles execute reusable behavior.
+
+## Core Layers
+
+### Inventory
+
+Inventories define where automation runs.
+
+Environment inventories live under `inventories/<environment>/`.
+
+Current environments in the repo:
+
+- `sandbox`
+- `lab`
+- `dev`
+- `tst`
+- `prd`
+
+Environment intent at a high level:
+
+- `sandbox` is the preferred safe environment for Ansible development and execution during change development.
+- `lab` exists for a different operational purpose and is not the default place for day-to-day Ansible change development.
+- `dev`, `tst`, and `prd` represent the broader promotion path toward validated and production rollout.
+
+Common patterns:
+
+- `hosts.yml` defines the inventory structure for that environment.
+- `group_vars/windows.yml` carries shared Windows connection settings.
+- Group-specific files such as `group_vars/uipath_orchestrator.yml` or `group_vars/team_neon.yml` provide targeted overrides.
+- `inventories/group_vars/` holds cross-environment defaults.
+
+### Profiles
+
+Profiles define what a machine should contain.
+
+The repository currently uses two main Windows composition styles:
+
+- toolbox playbooks combine a shared base profile, one team profile, and optional inventory-driven overrides
+- platform playbooks load one machine profile directly
+
+For toolbox playbooks, the resulting role set is derived from:
+
+```text
+base_roles + team_roles + env_add_roles - remove_roles - env_remove_roles
+```
+
+Role-layer intent:
+
+- `base_roles` defines the normal baseline software set for that toolbox profile
+- `team_roles` adds team-specific software on top of that baseline
+- `env_add_roles` supports environment-specific rollout or experimentation
+- `env_remove_roles` supports environment-specific exclusion
+- `remove_roles` supports narrower removal for a specific machine or host group
+
+For platform playbooks, machine profiles define:
+
+- `machine_roles`
+- package lists consumed by those roles
+- optional machine-level environment variables via `machine_env`
+
+### Software Catalog
+
+The software catalog defines package metadata independently from role logic.
+
+Windows software metadata is split into catalog fragments under:
+
+```text
+profiles/windows/software_catalog/
+```
+
+Examples currently in the repo include:
+
+- `git.yml`
+- `python.yml`
+- `vscode.yml`
+- `dotnet_hosting.yml`
+- `uipath_orchestrator_migration.yml`
+
+Catalog entries describe package metadata such as:
+
+- source type
+- installer file details
+- installation arguments
+- verification checks
+- optional PATH, environment, registry, or certificate configuration
+
+### Resolver Layer
+
+Resolvers determine how installers are obtained and normalized before execution.
+
+The shared Windows resolver path currently centers on:
+
+- `roles/windows/common/tasks/load_software_catalog.yml`
+- `roles/windows/common/tasks/resolve_installer.yml`
+- `roles/windows/common/tasks/resolve_jfrog.yml`
+- `roles/windows/common/tasks/resolve_local.yml`
+- `roles/windows/common/tasks/resolve_share.yml`
+- `roles/windows/common/tasks/resolve_share_copy.yml`
+
+These helpers let the repository support different source types without forcing each role to embed its own installer-resolution logic.
+
+### Execution Plan
+
+The execution plan turns desired package definitions into normalized installation steps.
+
+In the current Windows path, the common flow is:
+
+```text
+requested package keys
+   ->
+load catalog fragment
+   ->
+resolve installer metadata
+   ->
+build normalized package list
+   ->
+execute installation
+   ->
+verify installation markers
+   ->
+apply optional post-install configuration
+```
+
+The most important shared execution helpers are:
+
+- `roles/windows/common/tasks/install_from_catalog.yml`
+- `roles/windows/common/tasks/execute_plan.yml`
+- `roles/windows/common/tasks/add_path.yml`
+- `roles/windows/common/tasks/add_env.yml`
+- `roles/windows/common/tasks/add_registry.yml`
+- `roles/windows/common/tasks/add_certificate.yml`
+- `roles/windows/common/tasks/set_windows_env.yml`
+
+### Roles
+
+Roles implement reusable execution behavior.
+
+Representative Windows roles currently present include:
+
+- `certificate`
+- `dotnet_hosting`
+- `git`
+- `iis`
+- `iis_url_rewrite`
+- `machine_configuration`
+- `microsoft_dotnet_framework`
+- `microsoft_web_deploy`
+- `postman`
+- `python`
+- `uipath_orchestrator_migration`
+- `vscode`
+
+Linux currently includes:
+
+- `gitlab_runner`
+
+Windows roles generally rely on shared resolver and execution helpers instead of duplicating installation logic inside each role.
 
 ## Repository Layout
 
@@ -63,110 +244,6 @@ docs/
   reference/
 ```
 
-## Inventory Model
-
-Environment inventories live under `inventories/<environment>/`.
-
-Current environments in the repo:
-
-- `lab`
-- `dev`
-- `tst`
-- `prd`
-- `sandbox`
-
-Environment intent at a high level:
-
-- `sandbox` is the safe development inventory for Ansible work. It exists so playbooks, role composition, and changes can be developed and executed without using `lab`.
-- `lab` is not treated as the primary development space for Ansible changes. It serves a different operational purpose and should not be the default place for day-to-day automation development.
-- `dev`, `tst`, and `prd` represent the more standard progression toward validated and production usage.
-
-Common patterns:
-
-- `hosts.yml` defines the inventory structure for that environment.
-- `group_vars/windows.yml` carries shared Windows connection settings.
-- Group-specific files such as `group_vars/uipath_orchestrator.yml` or `group_vars/team_neon.yml` provide targeted overrides.
-- `inventories/group_vars/` holds cross-environment defaults.
-
-## Profile Model
-
-The repository currently uses two main Windows composition styles.
-
-### Toolbox Profiles
-
-Toolbox playbooks combine:
-
-- `profiles/windows/toolbox/base.yml`
-- one team profile such as `profiles/windows/toolbox/team_alpha.yml`
-- optional environment additions and removals from inventory vars
-
-The resulting role set is derived from:
-
-```text
-base_roles + team_roles + env_add_roles - remove_roles - env_remove_roles
-```
-
-Role-layer intent:
-
-- `base_roles` is used for toolbox machines to define the baseline software set that should normally exist everywhere for that toolbox type.
-- `team_roles` adds team-specific software on top of the toolbox baseline.
-- `env_add_roles` is used when a role should exist only in one environment such as `sandbox`, `dev`, or `lab`, which makes controlled rollout easier.
-- `env_remove_roles` is used when a role should be excluded only in one environment, again to support safer staged rollout and environment-specific exceptions.
-- `remove_roles` is used to remove a role for a more specific target such as a machine or group, without changing the broader shared profile intent.
-
-### Platform Machine Profiles
-
-UiPath playbooks load a machine profile directly from:
-
-```text
-profiles/windows/machines/
-```
-
-Each machine profile defines:
-
-- `machine_roles`
-- package lists consumed by those roles
-- optional machine-level environment variables via `machine_env`
-
-### Linux Profiles
-
-Linux currently uses:
-
-- `profiles/linux/machines/gitlab_runner.yml`
-- `profiles/linux/software_catalog.yml`
-
-This path is present but still much lighter than the Windows implementation.
-
-## Software Catalog Model
-
-Windows software metadata is split into catalog fragments under:
-
-```text
-profiles/windows/software_catalog/
-```
-
-Examples currently in the repo include:
-
-- `git.yml`
-- `python.yml`
-- `vscode.yml`
-- `dotnet_hosting.yml`
-- `uipath_orchestrator_migration.yml`
-
-Catalog entries describe package metadata such as:
-
-- source type
-- installer file details
-- installation arguments
-- verification checks
-- optional PATH, environment, registry, or certificate configuration
-
-Windows roles generally resolve and install packages through the shared helper:
-
-```text
-roles/windows/common/tasks/install_from_catalog.yml
-```
-
 ## Playbook Entry Points
 
 Current playbooks:
@@ -178,7 +255,7 @@ Current playbooks:
 - `playbooks/windows/toolbox/team_gamma.yml`
 - `playbooks/windows/toolbox/team_neon.yml`
 
-These playbooks compute a final role set from toolbox profile layers. They are currently written in a debug/composition-first style and gate role execution behind `execute_roles`.
+These playbooks compute a final role set from toolbox profile layers. They are currently written in a composition-first style and gate role execution behind `execute_roles`.
 
 ### Windows platform
 
@@ -205,7 +282,7 @@ ansible-playbook -i inventories/dev/hosts.yml playbooks/windows/platform/uipath_
 ansible-playbook -i inventories/prd/hosts.yml playbooks/linux/gitlab_runner.yml
 ```
 
-For toolbox playbooks, the current pattern is team-specific. If you want role execution rather than composition/debug output, pass `execute_roles=true`.
+For toolbox playbooks, pass `execute_roles=true` when you want role execution rather than composition/debug output.
 
 In practice, the recommended development path is to validate new toolbox changes in `sandbox` first, then promote them through the other environments as needed.
 

@@ -27,7 +27,7 @@ roles/windows/<role_name>/tasks/main.yml
 Example:
 
 ```text
-roles/windows/maven/tasks/main.yml
+roles/windows/git/tasks/main.yml
 ```
 
 ## 3. Follow The Current Windows Pattern
@@ -37,12 +37,12 @@ Most Windows roles call the shared installer helper rather than duplicating reso
 Example:
 
 ```yaml
-- name: Install Maven packages
+- name: Install Git packages
   ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
   vars:
-    software_catalog_entry: maven.yml
-    software_package_list: "{{ maven_packages | default([]) }}"
-    software_role_name: maven
+    software_catalog_entry: git.yml
+    software_package_list: "{{ git_packages | default([]) }}"
+    software_role_name: git
 ```
 
 This keeps package resolution and installation behavior consistent across roles.
@@ -58,7 +58,7 @@ profiles/windows/software_catalog/
 Example:
 
 ```text
-profiles/windows/software_catalog/maven.yml
+profiles/windows/software_catalog/git.yml
 ```
 
 The file should contain the package keys referenced by the role.
@@ -70,8 +70,8 @@ Profiles provide the package list consumed by the role.
 Examples:
 
 ```yaml
-maven_packages:
-  - maven_3_9_9
+git_packages:
+  - git_2_44_0
 ```
 
 Depending on the use case, define that variable in:
@@ -103,7 +103,7 @@ For platform machines:
 
 ```yaml
 machine_roles:
-  - maven
+  - git
 ```
 
 ## 7. Reuse Common Tasks For Extra Configuration
@@ -131,5 +131,5 @@ Pick the playbook that actually consumes the profile layer you changed.
 
 - Keep installer source details in the software catalog, not in the role.
 - Prefer `install_from_catalog.yml` unless there is a clear reason not to.
-- Keep role names aligned with the package variable they consume, for example `maven` and `maven_packages`.
+- Keep role names aligned with the package variable they consume, for example `git` and `git_packages`.
 - If you add a Windows role with machine-level environment settings, consider whether `machine_configuration` should remain separate from the software-install role.
