@@ -257,6 +257,15 @@ Current playbooks:
 
 These playbooks compute a final role set from toolbox profile layers. They are currently written in a composition-first style and gate role execution behind `execute_roles`.
 
+Before role execution, they also print the computed composition so an operator can verify the final role set that would be applied. The debug output includes:
+
+- `base_roles`
+- `team_roles`
+- `env_add_roles`
+- `remove_roles`
+- `env_remove_roles`
+- `final_roles`
+
 ### Windows platform
 
 - `playbooks/windows/platform/uipath_orchestrator.yml`
@@ -282,7 +291,7 @@ ansible-playbook -i inventories/dev/hosts.yml playbooks/windows/platform/uipath_
 ansible-playbook -i inventories/prd/hosts.yml playbooks/linux/gitlab_runner.yml
 ```
 
-For toolbox playbooks, pass `execute_roles=true` when you want role execution rather than composition/debug output.
+For toolbox playbooks, the default behavior is useful for verification because it prints the merged composition and the resulting `final_roles`. Pass `execute_roles=true` when you want the playbook to move from composition/debug output into actual role execution.
 
 In practice, the recommended development path is to validate new toolbox changes in `sandbox` first, then promote them through the other environments as needed.
 
@@ -309,13 +318,15 @@ Current stages:
 - `fetch-secrets`
 - `deploy`
 
-The `verify-roles` job performs a syntax check using:
+The `verify-roles` job runs the selected playbook in verification mode using:
 
 ```text
-ansible-playbook -i inventories/<environment>/hosts.yml playbooks/windows/<domain>/<target>.yml --syntax-check
+ansible-playbook -i inventories/<environment>/hosts.yml playbooks/windows/<domain>/<target>.yml
 ```
 
-The deploy job runs the same playbook as a manual step.
+For toolbox targets, that verification run also prints the composition debug output, including the computed `final_roles`, so operators can confirm which roles would be applied before enabling execution.
+
+The deploy job runs the same playbook as a manual step, typically with execution enabled where needed.
 
 ## Contribution Guidelines
 
