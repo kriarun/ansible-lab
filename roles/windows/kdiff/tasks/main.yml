@@ -22,6 +22,12 @@
     that: git_stat.stat.exists
     fail_msg: "Git is not installed. Install Git before running the KDiff3 role."
 
+- name: Check if KDiff3 is already configured in Git system config
+  ansible.windows.win_shell: git config --system diff.tool
+  register: git_diff_tool
+  failed_when: false
+  changed_when: false
+
 - name: Configure KDiff3 as system-wide Git diff and merge tool
   ansible.windows.win_shell: |
     git config --system diff.tool kdiff3
@@ -34,4 +40,4 @@
     git config --system mergetool.keepBackup false
     git config --system mergetool.keepTemporaries false
     git config --system mergetool.kdiff3.path "C:/Program Files/KDiff3/kdiff3.exe"
-  become: true
+  when: git_diff_tool.stdout | trim != 'kdiff3'
