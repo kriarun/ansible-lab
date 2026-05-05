@@ -1,0 +1,37 @@
+- name: Install KDiff3
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: kdiff3.yml
+    software_package_list: "{{ kdiff3_packages }}"
+    software_role_name: kdiff3
+
+- name: Add KDiff3 to system PATH
+  ansible.windows.win_path:
+    elements:
+      - 'C:\Program Files\KDiff3'
+    scope: machine
+    state: present
+
+- name: Check if Git is installed
+  ansible.windows.win_stat:
+    path: 'C:\Program Files\Git\cmd\git.exe'
+  register: git_stat
+
+- name: Assert Git is installed before configuring KDiff3
+  ansible.builtin.assert:
+    that: git_stat.stat.exists
+    fail_msg: "Git is not installed. Install Git before running the KDiff3 role."
+
+- name: Configure KDiff3 as system-wide Git diff and merge tool
+  ansible.windows.win_shell: |
+    git config --system diff.tool kdiff3
+    git config --system difftool.kdiff3.path "C:/Program Files/KDiff3/kdiff3.exe"
+    git config --system difftool.prompt false
+    git config --system difftool.keepBackup false
+    git config --system difftool.trustExitCode false
+    git config --system merge.tool kdiff3
+    git config --system mergetool.prompt false
+    git config --system mergetool.keepBackup false
+    git config --system mergetool.keepTemporaries false
+    git config --system mergetool.kdiff3.path "C:/Program Files/KDiff3/kdiff3.exe"
+  become: true
