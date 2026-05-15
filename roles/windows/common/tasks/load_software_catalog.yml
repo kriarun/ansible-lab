@@ -1,3 +1,6 @@
+# TODO: switch to 'file' lookup - template lookup evaluates Jinja2 at load time.
+# Lazy loading currently guards against cross-machine variable failures.
+# With 'file' lookup, lazy loading remains valid but for caching reasons only.
 ---
 - name: Define software catalog root
   ansible.builtin.set_fact:

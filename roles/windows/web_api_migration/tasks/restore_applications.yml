@@ -1,0 +1,7 @@
+# restore_applications.yml
+- name: Restore IIS from full webserver backup
+  ansible.windows.win_shell: |
+    msdeploy.exe -verb:sync `
+      -source:package="{{ web_api_migration_backup_dir }}\back.zip";encryptPassword="{{ web_api_migration_encrypt_password }}" `
+      -dest:webServer `
+      -allowUntrusted

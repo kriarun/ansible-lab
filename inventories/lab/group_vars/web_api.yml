@@ -1,0 +1,3 @@
+# inventories/sandbox/group_vars/web_api.yml
+web_api_migration_encrypt_password: "{{ lookup('env', 'WEB_API_MIGRATION_ENCRYPT_PASSWORD') }}"
+web_api_certificate_pfx_password: "{{ lookup('env', 'WEB_API_CERTIFICATE_PFX_PASSWORD') }}"

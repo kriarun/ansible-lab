@@ -1,0 +1,37 @@
+# profiles/windows/machines/web_api.yml
+
+machine_roles:
+  - git
+  - dynatrace_oneagent
+  - iis
+  - iis_url_rewrite
+  - dotnet_hosting
+  - microsoft_web_deploy
+  - request_router
+  - certificate
+  - web_api_migration
+
+# software
+git_packages:
+  - git_2_44_0
+
+dynatrace_oneagent_packages:
+  - dynatrace_oneagent_1_x
+
+iis_url_rewrite_packages:
+  - iis-url-rewrite-v2
+
+dotnet_hosting_packages:
+  - dotnet-hosting-8.0.13-win
+
+microsoft_web_deploy_packages:
+  - microsoft-web-deploy-v3
+
+request_router_packages:
+  - request-router-amd64
+
+certificate_packages:
+  - web_api_ssl_cert
+
+# migration
+web_api_migration_backup_dir: "C:\\Migration\\Backup"
