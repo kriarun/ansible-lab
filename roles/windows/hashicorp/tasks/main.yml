@@ -1,0 +1,12 @@
+- name: Read secret from Vault
+  ansible.builtin.set_fact:
+    _vault_secret: >-
+      {{ lookup('community.hashi_vault.hashi_vault',
+          vault_secret_path,
+          token=vault_token,
+          url=vault_addr,
+          mount_point=vault_mount_point,
+          auth_method='token'
+        )
+      }}
+  no_log: true

@@ -1,0 +1,27 @@
+# roles/windows/scheduled_tasks/tasks/main.yml
+
+- name: Create scheduled tasks
+  community.windows.win_scheduled_task:
+    name: "{{ item.name }}"
+    run_level: highest
+    logon_type: service_account
+    username: SYSTEM
+    actions:
+      - path: powershell.exe
+        arguments: >-
+          -Command "
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+          Invoke-WebRequest -UseBasicParsing '{{ item.url }}'
+          "
+    triggers:
+      - type: daily
+        start_boundary: "{{ item.start_time }}"
+        repetition:
+          interval: "{{ item.interval }}"
+          duration: "{{ item.duration }}"
+          stop_at_duration_end: yes
+    stop_if_going_on_batteries: yes
+    start_when_available: yes
+    state: present
+    enabled: yes
+  loop: "{{ scheduled_tasks }}"

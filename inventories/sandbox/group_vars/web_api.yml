@@ -1,0 +1,12 @@
+# inventories/sandbox/group_vars/web_api.yml
+scheduled_tasks:
+  - name: "WebApi Health Check One"
+    url: "https://first-url/Esgen/Swagger/index.html"
+    start_time: "2024-01-01T04:00:00"
+    interval: PT30M
+    duration: PT3H
+  - name: "WebApi Health Check Two"
+    url: "https://second-url/Esgen/Swagger/index.html"
+    start_time: "2024-01-01T06:00:00"
+    interval: PT1H
+    duration: PT2H

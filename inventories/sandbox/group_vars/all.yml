@@ -1,0 +1,3 @@
+vault_mount_point: "prod/rob-default"
+vault_token: "{{ lookup('env', 'VAULT_TOKEN') }}"
+vault_addr: "{{ lookup('env', 'VAULT_ADDR') }}"
