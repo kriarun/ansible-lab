@@ -1,0 +1,7 @@
+
+
+- name: Create base and machine specific folders
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: directory
+  loop: "{{ base_folders + (machine_folders | default([])) }}"

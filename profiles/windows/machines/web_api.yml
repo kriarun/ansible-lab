@@ -1,6 +1,7 @@
 # profiles/windows/machines/web_api.yml
 
 machine_roles:
+  - prepare_folder
   - git
   - dynatrace_oneagent
   - iis
