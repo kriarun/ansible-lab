@@ -1,3 +1,6 @@
+Here is the final README in one block:
+
+```markdown
 # Web API Machine
 
 ## Purpose
@@ -24,6 +27,8 @@ lab → dev → tst → prd
 ---
 
 ## Backup Guide
+
+Instead of manually reconfiguring certificates, environment variables, server roles, and reinstalling 15 applications one by one — we back up the existing state and restore it automatically via Ansible. Faster, safer, and repeatable.
 
 Run these steps on the **old machine** before migration.
 Store all backup files in a folder named `backup_<hostname>_<date>` on the backup machine.
@@ -84,6 +89,8 @@ backup_<hostname>_<date>\
 
 ## Migration Guide
 
+This migration is a one-time activity to move from the old machine to Windows Server 2025. Going forward, new certificates, environment variables, and application deployments will be handled through dedicated Ansible roles and GitLab CI/CD pipelines — not through this migration process.
+
 ### Pre-Migration Checklist
 Run through this checklist before triggering the pipeline.
 
@@ -105,12 +112,6 @@ C:\sources\web_api_migration\
   └── IIS_Backup.zip
 ```
 
-### Run The Playbook
-```bash
-ansible-playbook -i inventories/<env>/hosts.yml \
-  playbooks/windows/platform/web_api.yml
-```
-
 ### Environment Promotion
 Always follow this order — never skip environments:
 ```
@@ -123,6 +124,3 @@ lab → dev → tst → prd
 - IIS application restore via msdeploy full webserver backup
 - Repeatable and idempotent — safe to run multiple times
 ```
-
----
-
