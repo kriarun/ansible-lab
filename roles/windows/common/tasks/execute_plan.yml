@@ -1,67 +1,147 @@
-# Expects: pkg (one resolved_item)
 
-# 1) Precheck
+# -----------------------
+# Precheck (Idempotence)
+# -----------------------
 - name: Check if software already installed (marker)
   ansible.windows.win_stat:
     path: "{{ pkg.install.check.path_exists }}"
   register: marker_check
 
-- name: Set installed flag
+- name: Set already installed flag
   ansible.builtin.set_fact:
-    _pkg_is_installed: "{{ marker_check.stat.exists | bool }}"
+    _pkg_already_installed: "{{ marker_check.stat.exists | bool }}"
 
-# 2) Acquire/Transfer (only if not installed)
+
+# Acquire/Transfer (only if not installed)
 - name: Acquire from jfrog
   ansible.builtin.include_tasks: acquire_jfrog.yml
   when:
-    - not _pkg_is_installed
+    - not _pkg_already_installed
     - pkg.source.type == "jfrog"
 
-- name: Validate local installer exists (local)
+# -----------------------
+#  Validate installer exists (local only)
+# -----------------------
+- name: Validate local installer exists
   ansible.windows.win_stat:
     path: "{{ pkg.installer.final_path }}"
   register: installer_file
   when:
-    - not _pkg_is_installed
+    - not _pkg_already_installed
     - pkg.source.type == "local"
 
-- name: Fail if local installer missing
+- name: Fail if installer missing
   ansible.builtin.assert:
     that:
       - installer_file.stat.exists
     fail_msg: "Installer not found at {{ pkg.installer.final_path }}"
   when:
-    - not _pkg_is_installed
+    - not _pkg_already_installed
     - pkg.source.type == "local"
 
-# 3) Install
+# -------------------------
+# Execute pre-installation steps for package
+# -------------------------
+- name: Execute pre_install steps for - {{pkg.software_key | default('unknown')}}
+  ansible.builtin.include_tasks: "{{role_path}}/../common/tasks/pre_install_steps/{{ step.type | default('generic') }}.yml"
+  loop: "{{ pkg.pre_install | default([]) }}"
+  loop_control:
+    loop_var: step
+    label: "{{ step.name | default('pre-install-step') }}"
+  # Explicitly pass only the variables what the included task needs with _ - clearly marking them as local-to-task variables
+  vars:
+    _software_key: "{{ pkg.software_key }}"
+    _pre_install_step: "{{ step }}"
+  when:
+    - not _pkg_already_installed
+    - pkg.pre_install is defined
+    - pkg.pre_install | length > 0
+
+# -----------------------
+#  Install 
+# -----------------------
 - name: Install package (EXE)
   ansible.windows.win_package:
     path: "{{ pkg.installer.final_path }}"
     arguments: "{{ pkg.install.arguments }}"
-    state: present
+    state: present  
   when:
-    - not _pkg_is_installed
+    - not _pkg_already_installed
     - pkg.install.type == "exe"
 
-   # 3) Install
+
 - name: Install package (MSI)
   ansible.windows.win_package:
     path: "{{ pkg.installer.final_path }}"
     arguments: "{{ pkg.install.arguments }}"
-    state: present
+    state: present  
   when:
-    - not _pkg_is_installed
+    - not _pkg_already_installed
     - pkg.install.type == "msi" 
 
-# 4) Verify
+
+- name: Install package (ZIP)
+  ansible.builtin.include_tasks: install_zip.yml  
+  when:
+    - not _pkg_already_installed
+    - pkg.install.type == "zip"
+
+#TODO command line
+
+#- name: Debug all variables at this level
+#  ansible.builtin.debug:
+#    msg: >-
+#      {
+#        "vars": "{{ vars | to_yaml }}",
+#        "ansible_facts": "{{ ansible_facts | to_yaml }}"
+#      }
+
+# -------------------------
+# Execute post-installation steps for package
+# -------------------------
+- name: Adding {{pkg.software_key | default('unknown')}} to path
+  ansible.windows.win_path:
+    elements: "{{ pkg.path.entries }}"
+    scope: machine
+    state: present
+  when:
+    - not _pkg_already_installed
+    - pkg.path is defined
+    - pkg.path.entries is defined
+    - pkg.path.entries | length > 0
+
+- name: Adding configured environment variables for {{pkg.software_key | default('unknown')}} to the system
+  win_environment:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    level: machine
+    state: present
+  loop: "{{ pkg.env.variables | dict2items }}"
+  when:
+    - not _pkg_already_installed
+    - pkg.env is defined
+    - pkg.env.variables is defined
+
+# -----------------------
+# Verify installation
+# -----------------------
 - name: Verify installation marker
   ansible.windows.win_stat:
     path: "{{ pkg.install.check.path_exists }}"
-  register: verify_marker
+  register: is_new_pkg_installed
+  when:
+    - not _pkg_already_installed
 
 - name: Ensure installation succeeded
   ansible.builtin.assert:
     that:
-      - verify_marker.stat.exists
+      - is_new_pkg_installed.stat.exists
     fail_msg: "Installation failed for {{ pkg.software_key }}"
+  when:
+    - not _pkg_already_installed    
+
+- name: Set new package installed flag
+  ansible.builtin.set_fact:
+    _new_pkg_installed: "{{ is_new_pkg_installed.stat.exists | bool }}"    
+  when:
+    - not _pkg_already_installed        

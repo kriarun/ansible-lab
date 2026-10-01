@@ -1,4 +1,6 @@
 machine_roles:
+  - hashicorp
+  - dynatrace
   - certificate
   - microsoft_dotnet_framework
   - iis
@@ -6,6 +8,7 @@ machine_roles:
   - iis_url_rewrite
   - microsoft_web_deploy
   - uipath_orchestrator_migration  
+  - uipath_action_center
 
 dotnet_hosting_packages:
   - dotnet-hosting-8.0.13-win
@@ -22,3 +25,7 @@ microsoft_dotnet_framework_packages:
 
 uipath_orchestrator_packages:
    - uipath_orchestrator_2024.10.1
+
+
+uipath_action_center_packages:
+   - uipath_action_center_2024.10.1

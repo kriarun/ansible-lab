@@ -1,0 +1,4 @@
+---
+- name: Pre install step - generic for {{ _software_key }}
+  debug:
+    msg: "No pre-install-step was configured for the software catalog entry"

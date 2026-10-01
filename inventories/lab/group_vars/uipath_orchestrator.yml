@@ -1,68 +1,100 @@
-uipath_ochestrator_installed_path: 'C:\Program Files (x86)\Uipath\Orchestrator'
+ansible_user: user
+ansible_password: "{{lookup('env','user')}}"  
+
+dynatrace_packages:
+  - Dynatrace-OneAgent-Windows-1.305.109_TST
+
+uipath_orchestrator_installed_path: 'C:\Program Files (x86)\UiPath\Orchestrator'
+uipath_orchestrator_install_log: "C:\\Temp\\ansible\\uipath_orchestrator_install.log"
+
+installer_cache_dir: "C:\\Temp\\ansible\\installers"
+
+vault_secret_path: "3111-ansible/test/uipath_orchestrator"
+
+uipath_orchestrator_parameters_file: 'C:\sources\uipath_migration\uipath_orchestrator_install.json'
+
+uipath_orchestrator_fqdn: "rpa-dev.bank.ch"
+
+dynatrace_install_arguments:
+  host_group: "uipath_dev"
+  al_number: "AL-Number=1234"
+  application: "RPA_DEV"
+  custom_hostname: "Custom-Hostname=Orchestrator-Dev"
+  hostname: "Hostname=XXXX"
+  stage: "Stage=dev"
+  montoring_mode: "infra-only"
+  log_content_access_enabled: true
+  log_access_enabled: true  
+  host_tags_group: "YYYYY"
+  host_tags_environment: "environment=dev"
+  host_tags_monitoring_os: "log_monitoring=windows"
+  host_tags_monitoring_service: "log_monitoring=uipath_orchestrator_dev"
 
 ssl_certificate:
-  subject: 'subject '
-  thumbprint: ""
+  subject: 'CN=cn OU = ou O = Bank AG L = Location S = Location C = CH'
+  thumbprint: ''
   store_location: LocalMachine
   store_name: My
-  pfx_path: "{{ lookup('env', 'UIPATH_CERT_PFX_PATH') | default('', true) }}"
-  pfx_password: "{{ lookup('env', 'UIPATH_CERT_PFX_PASSWORD') | default('', true) }}"
+  pfx_path: 'C:\sources\uipath_migration\Certs.pfx'
+  pfx_password: "{{ _vault_secret.certificate }}"
+
 
 uipath_runtime:
-  db_server: "hostname\\sql2022"
-  db_name: "hostname"
-  db_auth: windows
-  elastic_url: 'https://hostname:9200'
+  db_server: "dbserver.ch"
+  db_host: "dbserver.ch"
+  db_name: "master"
+  db_auth: windows  
+  default_schema_name: "RPA_DEV"
+  test_automation_schema_name: "TestAutomation"
+  elastic_url: 'https://rpa-reporting-dev.ch:9200'
   elastic_username: "elastic"
-  elastic_password: "{{ lookup('env', 'UIPATH_ELASTIC_PASSWORD') }}"
+  elastic_password: "{{ _vault_secret.elastic_search }}"
   elastic_validate_certs: false
-
-uipath_database_settings:
-  - name: "Default"  
-    connection_string: "Data source"
-  - name: "Test Automation"  
-    connection_string: "Data source"    
-  - name: "Update Server"  
-    connection_string: "Data source"        
-
-
-uipath_app_settings:
-  - key: "InstanceKey"
-    value: "value"
-  - key: "IdentityServer.Integration.ClientId"
-    value: "value"
-  - key: "IdentityServer.Integration.ClientSecret"
-    value: "value"
-
-
-uipath_secure_app_settings:
-  - key: "EncryptionKey"
-    value: "value"
-  - key: "IdentityServer.EncryptionKey"
-    value: "value"
-
-
-uipath_orchestrator_install_config:
-  features: "OrchestratorFeature,IndetityFeature,TestAuomationFeature"
-  certficate_subject_or_thumprint: "{{ssl_certficate_thumprint }}"
-  identity_certficate_subject_or_thumprint: "{{ssl_certficate_thumprint }}"
-  default_database_server_name: "hostname"  
-  default_database_name: "databasename"
-  testauomtation_database_server_name: "hostname"
-  testauomtation_database_name: "databasename"  
-  database_authentication_mode: "WINDOWS"
-  application_pool_identity_type: "USER"
-  application_pool_user_name : "username"
-  application_pool_password: "{{ lookup('env','password') }}"
-  hostadmin_password: "{{ lookup('env','admin_password') }}"
-  hostadmin_password_confirm: "{{ lookup('env','admin_password') }}"
-  default_tenantadmin_password: "{{ lookup('env','admin_password') }}"
-  default_tenantadmin_password_confirm: "{{ lookup('env','admin_password') }}"
-  elastic_url: "{{uipath_runtime.url}}"
-  elastic_requires_auth: true
-  elastic_user_name: "{{uipath_runtime.elastic_username}}"
-  elastic_user_passord: "{{uipath_runtime.elastic_password}}"
-  install_log: "{{ uipath_log_dir }}"
+  public_url : 'https://rpa-dev.ch'
 
 
 
+install_json:
+  properties: 
+    is_certificate_subject: "{{ssl_certificate.thumbprint}}"
+    app_nuget_activities_key: "{{ _vault_secret.app_nuget_activities_key }}"
+    db_connection_string: "Data Source={{ uipath_runtime.db_server }};Initial Catalog={{uipath_runtime.default_schema_name}};Integrated Security=True"
+    updsvr_db_connection_string: "Data Source={{ uipath_runtime.db_server }};Initial Catalog={{uipath_runtime.default_schema_name}};Integrated Security=True"
+    certificate_subject: "{{ssl_certificate.thumbprint}}"
+    ta_db_connection_string: "Data Source={{ uipath_runtime.db_server }};Initial Catalog={{uipath_runtime.test_automation_schema_name}};Integrated Security=True"
+    app_encryption_key: "{{ _vault_secret.app_encryption_key }}"    
+    is_db_connection_string: "Data Source={{ uipath_runtime.db_server }};Initial Catalog={{uipath_runtime.default_schema_name}};Integrated Security=True"
+    apppool_user_name: 'mb-main\\sa_rpa_tst'
+    apppool_password: "{{ _vault_secret.apppool_password }}"
+    public_url: "{{ uipath_runtime.public_url }}"
+    app_nuget_packages_key: "{{ _vault_secret.app_nuget_packages_key }}"
+    elastic_url: "{{ uipath_runtime.elastic_url }}"
+    elastic_user_name: "{{ uipath_runtime.elastic_username }}"
+    elastic_user_password: "{{ uipath_runtime.elastic_password }}"
+    elastic_requires_auth: "true"
+  identityseedinfo:
+    orchestratorpkceopenidclient:
+      clientid: "clientid1"
+    orchestrators2sclient:
+      clientid: "clientid2"
+      clientsecret: "{{ _vault_secret.orchestrator_s2s_client_secret }}"
+    orchestratorswaggerclient:
+      clientid: "clientid3"
+    orchestratorropcclient: 
+      clientsecret: "{{ _vault_secret.orchestrator_ropc_client_secret }}"
+  identitysecrets:
+      encryptionkey: "{{ _vault_secret.identitysecrets_encryptionkey }}"
+
+
+uipath_action_center:  
+  fqdn: "rpa-dev.ch"
+  website_port: "8445"
+  certificate_subject: "{{ssl_certificate.thumbprint}}"
+  apppool_identity_type: "ApplicationPoolIdentity"
+  port_firewall: "1"
+  orchestrator_url: "{{ uipath_runtime.public_url }}"
+  identity_url: "{{ uipath_runtime.public_url }}/identity"
+  action_center_url: "{{uipath_runtime.public_url}}:8445"
+  identity_installation_token: ""
+  uipath_tenant_admin_password: "{{ _vault_secret.uipath_tenant_admin }}"
+  install_log: "C:\\Temp\\ansible\\uipath_action_center_install.log"

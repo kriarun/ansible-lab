@@ -1,0 +1,10 @@
+- name: UiPath | Stop the IIS Server
+  ansible.windows.win_service:
+    name: "{{ service_name | default('W3SVC') }}"
+    state: stopped
+
+- name: UiPath | Start the IIS Server
+  ansible.windows.win_service:
+    name: "{{ service_name | default('W3SVC') }}"
+    state: started
+    start_mode: auto

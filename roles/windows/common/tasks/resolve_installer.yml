@@ -1,23 +1,11 @@
-# Expects: software_key, software_catalog, installer_cache_dir
-# Side effects:
-# - sets: sw
-# - sets: resolved_item
-# - appends resolved_item to resolved_packages
+
+- name: Load Jfrog Registry Token if not already loaded
+  ansible.builtin.include_vars:
+    file: "{{role_path}}/../../../profiles/windows/jfrog_registry_token.yml" 
+  when: jfrog_bearer_token is not defined
 
 - name: Load software catalog if not already loaded
   ansible.builtin.include_tasks: load_software_catalog.yml
-  vars:
-    software_catalog_entry: "{{ software_catalog_entry | default('') }}"
-  when: >-
-    software_catalog is not defined
-    or (software_catalog_force_reload | default(false))
-    or (
-      (software_catalog_entry | default('') | trim) != software_catalog_source | default('__undefined__')
-    )
-
-- name: Print software catalog
-  ansible.builtin.debug:
-    var: software_catalog
 
 - name: Validate software key exists in catalog
   ansible.builtin.assert:
@@ -26,28 +14,23 @@
       - software_catalog[software_key] is defined
     fail_msg: >-
       Software key '{{ software_key }}' not found in software_catalog.
-      Available keys: {{ (software_catalog | default({}, true)).keys() | list }}
+      Available keys: {{ (software_catalog | default({})).keys() | list }}
 
 - name: Load software entry
   ansible.builtin.set_fact:
     sw: "{{ software_catalog[software_key] }}"
 
-# -------------------------
-# Validate source structure
-# -------------------------
 - name: Validate source structure
   ansible.builtin.assert:
     that:
       - sw.source is defined
       - sw.source.type is defined
-      - sw.source.type in ["jfrog", "share", "share_copy", "local"]
+      - sw.source.type in ["jfrog", "share", "local"]
     fail_msg: >-
       Software '{{ software_key }}' has invalid or missing source definition.
-      Supported types: jfrog, share, share_copy, local
+      Supported types: jfrog, share,local
 
-# -------------------------
-# Validate install structure
-# -------------------------
+
 - name: Validate install structure
   ansible.builtin.assert:
     that:
@@ -62,21 +45,35 @@
 - name: Validate install type
   ansible.builtin.assert:
     that:
-      - sw.install.type in ['exe', 'msi', 'zip']
+      - sw.install.type in ['exe', 'msi', 'zip', 'command-line']
     fail_msg: "Unsupported install type: {{ sw.install.type }}"
 
-- name: Validate PATH configuration
+- name: Validate ZIP install fields
+  ansible.builtin.assert:
+    that:
+      - sw.install.destination is defined
+      - sw.install.check.path_exists is defined
+    fail_msg: "ZIP package {{ software_key }} missing required fields"
+  when: sw.install.type == "zip"
+
+- name: Validate COMMAND-LINE install fields
+  ansible.builtin.assert:
+    that:
+      - sw.install.destination is defined
+      - sw.install.check.path_exists is defined
+    fail_msg: "COMMAND-LINE package {{ software_key }} missing required fields"
+  when: sw.install.type == "command-line"
+
+- name: Validate PATH Configuration
   ansible.builtin.assert:
     that:
       - sw.path.entries is defined
-      - sw.path.entries | length > 0
-    fail_msg: >
-      PATH is enabled for '{{ software_key }}' but 'entries' is missing or empty.
-  when:
+      - sw.path.entries | length > 0 
+    fail_msg: "Path is enabled for {{ software_key }} but entries is missing or empty"
+  when: 
     - sw.path is defined
-    - sw.path.enabled | default(false)  
+    - sw.path.enabled | default (false)
 
-# Optional: normalize source_type for readability
 - name: Normalize source_type
   ansible.builtin.set_fact:
     source_type: "{{ sw.source.type }}"
@@ -91,10 +88,6 @@
 - name: Resolve source type share
   ansible.builtin.include_tasks: resolve_share.yml
   when: source_type == "share"
-
-- name: Resolve source type share_copy
-  ansible.builtin.include_tasks: resolve_share_copy.yml
-  when: source_type == "share_copy"
 
 - name: Resolve source type local
   ansible.builtin.include_tasks: resolve_local.yml

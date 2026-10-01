@@ -1,44 +1,47 @@
----
-- name: Normalize certificate input variables
-  ansible.builtin.set_fact:
-    certificate_config: "{{ ssl_certificate | default(uipath_cert) }}"
+- name: Retrieve all certificates from the LocalMachine 
+  ansible.windows.win_certificate_info:      
+      store_name: "{{ ssl_certificate.store_name }}"
+      store_location: "{{ ssl_certificate.store_location }}"
+  register: ssl_certificate_info
 
-- name: Read certificate info
-  ansible.windows.win_certificate_info:
-    thumbprint: "{{ certificate_config.thumbprint }}"
-    store_name: "{{ certificate_config.store_name }}"
-    store_location: "{{ certificate_config.store_location }}"
-  register: uipath_cert_info
+- name: Normalize the subject and filter for certificates matching the subject
+  set_fact:
+    matching_certificates: >-
+      {{
+        ssl_certificate_info.certificates
+        | selectattr(
+            'subject',
+            'search',
+            ssl_certificate.subject
+            | replace('\\', '\\\\')
+            | regex_replace('^"|"$', '') 
+            | regex_replace(' OU = ', ', OU=')
+            | regex_replace(' O = ', ', O=')
+            | regex_replace(' L = ', ', L=')
+            | regex_replace(' S = ', ', S=')
+            | regex_replace(' C = ', ', C=')
+          )
+        | list
+      }}
+
+- name: Get current epoch time
+  ansible.builtin.set_fact:
+    current_epoch: "{{ lookup('pipe', 'date +%s') }}"          
+
+- name: Filter for valid (non-expired) certificates
+  set_fact:
+    valid_certificates: >-
+      {{
+        matching_certificates | selectattr('valid_to', '>', current_epoch |int ) | list
+      }}
 
 - name: Import certificate if missing
   ansible.windows.win_certificate_store:
-    path: "{{ certificate_config.pfx_path }}"
-    password: "{{ certificate_config.pfx_password }}"
+    path: "{{ ssl_certificate.pfx_path }}"
+    password: "{{ _vault_secret.certificate }}"
     state: present
-    store_location: "{{ certificate_config.store_location }}"
-    store_name: "{{ certificate_config.store_name }}"
-  when:
-    - not uipath_cert_info.exists
-    - certificate_config.pfx_path | length > 0
+    store_location: "{{ ssl_certificate.store_location }}"
+    store_name: "{{ ssl_certificate.store_name }}"
+  when:    
+    - valid_certificates | length == 0
   no_log: true
-
-- name: Re-read certificate info
-  ansible.windows.win_certificate_info:
-    thumbprint: "{{ certificate_config.thumbprint }}"
-    store_name: "{{ certificate_config.store_name }}"
-    store_location: "{{ certificate_config.store_location }}"
-  register: uipath_cert_info_final
-
-- name: Assert certificate exists
-  ansible.builtin.assert:
-    that:
-      - uipath_cert_info_final.exists
-    fail_msg: "Required certificate not found."
-
-- name: Validate certificate result
-  ansible.builtin.assert:
-    that:
-      - uipath_cert_info_final.exists
-      - uipath_cert_info_final.certificates | length == 1
-      - uipath_cert_info_final.certificates[0].valid_to > ansible_date_time.epoch | int
-    fail_msg: "Certificate missing, duplicated, or expired."

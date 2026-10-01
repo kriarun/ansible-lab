@@ -14,10 +14,27 @@ playbooks/windows/platform/uipath_orchestrator.yml
 
 ## Entry Points
 
-- Machine blueprint: [profiles/windows/machines/uipath_orchestrator.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/profiles/windows/machines/uipath_orchestrator.yml:1)
-- Inventory variables: [inventories/lab/group_vars/uipath_orchestrator.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/inventories/lab/group_vars/uipath_orchestrator.yml:1)
-- Software catalog: [profiles/windows/software_catalog/uipath.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/profiles/windows/software_catalog/uipath.yml:1)
-- Playbook: [playbooks/windows/platform/uipath_orchestrator.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/playbooks/windows/platform/uipath_orchestrator.yml:1)
+- Machine blueprint: [profiles/windows/machines/uipath_orchestrator.yml](../../../profiles/windows/platform/uipath_orchestrator.yml)
+- Inventory variables: [inventories/lab/group_vars/uipath_orchestrator.yml](../../../inventories/lab/group_vars/uipath_orchestrator.yml)
+- Software catalog: [profiles/windows/software_catalog](../../../profiles/windows/software_catalog)
+- Playbook: [playbooks/windows/platform/uipath_orchestrator.yml](../../../playbooks/windows/platform/uipath_orchestrator.yml)
+
+## Prerequisites for UIPath Installation
+
+Before running this role, ensure the following prerequisites are met:
+
+- Web Certificates (SSL Certificate)​: The SSL certificate must be installed with a private key. Please make sure you get the certificate and it is available on the machine or at the location specified.
+- .NET Framework: Ensure the required version of .NET Framework is installed.
+- IIS: Internet Information Services must be installed and configured.
+- ASP.NET Core IIS Module: Install the ASP.NET Core IIS Module.
+- URL Rewrite: The IIS URL Rewrite module must be installed.
+- Web-Deploy Extension: Install the Web-Deploy extension for IIS.
+- Application Pool User Rights: The Application Pool user must have the following rights in the Local Computer Policy:
+    Log on as a batch job.
+- SQL Server​
+
+**Note**: Always refer to the latest official UiPath documentation to ensure all prerequisites and configurations are up to date.
+
 
 ## Role Order
 
@@ -49,13 +66,13 @@ Inside the role, some values are normalized into compatibility variables such as
 
 ## Installation Flow
 
-The main task file is [tasks/main.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/roles/windows/uipath_orchestrator_migration/tasks/main.yml:1).
+The main task file is [tasks/main.yml](/roles/windows/uipath_orchestrator_migration/tasks/main.yml).
 
 It currently runs in this order:
 
 1. Validate required inventory variables.
 2. Normalize inventory variable names used by the role and software catalog.
-3. Include `fetch_certificate.yml`.
+3. Include `fetch_thumprint.yml`.
 4. Include `external_validation.yml`.
 5. Include `install_orchestrator.yml`.
 6. Stop IIS through `iis.yml`.
@@ -67,7 +84,7 @@ It currently runs in this order:
 
 ## What Each Stage Does
 
-### `fetch_certificate.yml`
+### `fetch_thumprint.yml`
 
 - Reads certificates from the configured Windows certificate store.
 - Filters certificates by subject.
@@ -97,10 +114,10 @@ After installation, the role stops IIS, applies UiPath configuration task files,
 
 The configuration task files currently present are:
 
-- [tasks/uipath_orchestrator_dll_configuration.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/roles/windows/uipath_orchestrator_migration/tasks/uipath_orchestrator_dll_configuration.yml:1)
-- [tasks/appsettings_production_configuration.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/roles/windows/uipath_orchestrator_migration/tasks/appsettings_production_configuration.yml:1)
-- [tasks/resourcecatalog_appsettings_production_configuration.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/roles/windows/uipath_orchestrator_migration/tasks/resourcecatalog_appsettings_production_configuration.yml:1)
-- [tasks/webhooks_appsettings_production_configuration.yml](/c:/Users/kriar/Downloads/ansible-lab-uipath-skeleton/roles/windows/uipath_orchestrator_migration/tasks/webhooks_appsettings_production_configuration.yml:1)
+- [tasks/uipath_orchestrator_dll_configuration.yml](tasks/uipath_orchestrator_dll_configuration.yml)
+- [tasks/appsettings_production_configuration.yml](tasks/appsettings_production_configuration.yml)
+- [tasks/resourcecatalog_appsettings_production_configuration.yml](tasks/resourcecatalog_appsettings_production_configuration.yml)
+- [tasks/webhooks_appsettings_production_configuration.yml](tasks/webhooks_appsettings_production_configuration.yml)
 
 At the moment, these files are scaffolds and should be filled in with the final configuration logic.
 

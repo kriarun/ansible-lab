@@ -1,0 +1,37 @@
+
+uipath_orchestrator_2024.10.1:
+  source:
+    type: jfrog
+    url: 'https://frog/artifactory/robotics-generic-ansible-local/uipath/UiPath_24.10.x/UiPathOrchestrator.msi'
+    filename: "UiPathOrchestrator.msi"
+  install:
+    type: msi
+    arguments: >-
+      SECONDARY_NODE=1 PARAMETERS_FILE="{{uipath_orchestrator_parameters_file}}"
+      /passive /q /L*V {{ uipath_orchestrator_install_log }}      
+    check:
+      path_exists: 'C:\Program Files (x86)\UiPath\Orchestrator\UiPath.Orchestrator.exe'
+
+
+
+uipath_action_center_2024.10.1:
+  source:
+    type: jfrog
+    url: 'https://frog:443/artifactory/robotics-generic-ansible-local/uipath/UiPath_24.10.x/UiPathActionCenter.msi'
+    filename: "UiPathActionCenter.msi"
+  install:
+    type: msi
+    arguments: >-
+      /q /L*V {{ uipath_action_center.install_log }}
+      HOST_NAME={{ uipath_action_center.fqdn }}
+      WEBSITE_PORT={{ uipath_action_center.website_port }}
+      CERTIFICATE_SUBJECT={{ uipath_action_center.certificate_subject }}
+      APPPOOL_IDENTITY_TYPE="ApplicationPoolIdentity"
+      PORT_FIREWALL="1"
+      ORCHESTRATOR_URL="{{ uipath_action_center.orchestrator_url }}"
+      IDENTITY_URL="{{ uipath_action_center.identity_url }}"
+      ACTION_CENTER_URL="{{uipath_action_center.action_center_url}}"
+      IDENTITY_INSTALLATION_TOKEN="{{ uipath_action_center.identity_installation_token }}"
+    check:
+      path_exists: 'C:\Program Files (x86)\UiPath\ActionCenter\ActionCenterService\UiPath.ActionCenterService.Web.exe'      	
+

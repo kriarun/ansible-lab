@@ -1,0 +1,81 @@
+- name: Ensure Web-Windows-Auth feature is installed
+  win_feature:
+    name: Web-Windows-Auth
+    state: present
+
+- name: Unlock windowsAuthentication section
+  win_shell: |
+    & "$env:windir\system32\inetsrv\appcmd.exe" unlock config -section:system.webServer/security/authentication/windowsAuthentication
+  changed_when: false
+
+- name: Unlock anonymousAuthentication section
+  win_shell: |
+    & "$env:windir\system32\inetsrv\appcmd.exe" unlock config -section:system.webServer/security/authentication/anonymousAuthentication
+  changed_when: false
+
+# ===========================================================================
+# STEP 3: Scope Windows Authentication to the Identity app only.
+# Must run AFTER Orchestrator install, since the Identity IIS path doesn't
+# exist until the MSI creates it. Root Orchestrator app stays Anonymous-only
+# so /api/account/authenticate (ROPC) keeps working.
+# ===========================================================================
+- name: Enable Windows Authentication on Identity app
+  win_shell: |
+    Import-Module WebAdministration
+    Set-WebConfigurationProperty -Filter "/system.webServer/security/authentication/windowsAuthentication" `
+      -Name enabled -Value true `
+      -PSPath "IIS:\Sites\UiPath Orchestrator\Identity" `
+      -ErrorAction Stop
+  register: identity_winauth_set
+  failed_when: identity_winauth_set.rc != 0
+
+- name: Enable Anonymous Authentication on Identity app
+  win_shell: |
+    Import-Module WebAdministration
+    Set-WebConfigurationProperty -Filter "/system.webServer/security/authentication/anonymousAuthentication" `
+      -Name enabled -Value true `
+      -PSPath "IIS:\Sites\UiPath Orchestrator\Identity" `
+      -ErrorAction Stop
+  register: identity_anon_set
+  failed_when: identity_anon_set.rc != 0
+
+- name: Disable Windows Authentication at root Orchestrator app
+  win_shell: |
+    Import-Module WebAdministration
+    Set-WebConfigurationProperty -Filter "/system.webServer/security/authentication/windowsAuthentication" `
+      -Name enabled -Value false `
+      -PSPath "IIS:\Sites\UiPath Orchestrator" `
+      -ErrorAction Stop
+  register: root_winauth_set
+  failed_when: root_winauth_set.rc != 0
+
+- name: Enable Anonymous Authentication at root Orchestrator app
+  win_shell: |
+    Import-Module WebAdministration
+    Set-WebConfigurationProperty -Filter "/system.webServer/security/authentication/anonymousAuthentication" `
+      -Name enabled -Value true `
+      -PSPath "IIS:\Sites\UiPath Orchestrator" `
+      -ErrorAction Stop
+  register: root_anon_set
+  failed_when: root_anon_set.rc != 0
+
+# ===========================================================================
+# STEP 4: Restart IIS so everything above actually takes effect
+# ===========================================================================
+- name: Restart IIS service
+  include_tasks: iis_restart.yml
+
+# ===========================================================================
+# STEP 5: Verify the settings actually took, don't just trust the writes
+# ===========================================================================
+- name: Verify Windows Auth is enabled on Identity app
+  win_shell: |
+    Import-Module WebAdministration
+    (Get-WebConfigurationProperty -Filter "/system.webServer/security/authentication/windowsAuthentication" `
+      -PSPath "IIS:\Sites\UiPath Orchestrator\Identity" -Name enabled).Value
+  register: identity_winauth_verify
+
+- name: Fail loudly if Identity Windows Auth didn't actually take
+  fail:
+    msg: "Windows Authentication on Identity app is still not enabled after applying config - check for a remaining lock or typo in UiPath Orchestrator"
+  when: identity_winauth_verify.stdout | trim | lower != "true"

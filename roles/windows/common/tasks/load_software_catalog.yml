@@ -1,12 +1,13 @@
 ---
 - name: Define software catalog root
   ansible.builtin.set_fact:
-    _software_catalog_root: "{{ role_path }}/../../../profiles/windows/software_catalog"
+    _software_catalog_root: "{{role_path}}/../../../profiles/windows/software_catalog"
   run_once: true
 
 - name: Normalize requested software catalog file
   ansible.builtin.set_fact:
     _requested_software_catalog_entry: "{{ software_catalog_entry | default('') | trim }}"
+  when: software_catalog_entry is defined  
   run_once: true
 
 - name: Validate software catalog file was provided
@@ -47,7 +48,6 @@
     software_catalog: {}
     software_catalog_source: "{{ _software_catalog_source }}"
   run_once: true
-
 
 - name: Merge software catalog fragments
   ansible.builtin.set_fact:

@@ -1,7 +1,8 @@
-- name: Ensure machine environment variables are present
+- name: Configure environment variables are present
   ansible.windows.win_environment:
-    level: machine
+    state: present
     name: "{{ item.key }}"
     value: "{{ item.value }}"
-    state: present
-  loop: "{{ machine_env_variables | dict2items }}"
+    level: machine
+  loop: "{{ environment_variables | dict2items }}"
+  

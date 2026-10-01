@@ -1,6 +1,3 @@
-# Expects: software_key, sw, installer_cache_dir
-# Sets: resolved_item
-
 - name: Validate jfrog fields
   ansible.builtin.assert:
     that:
@@ -17,20 +14,14 @@
 
 - name: Set resolved item (jfrog)
   ansible.builtin.set_fact:
-    resolved_item:
+    _resolved_item_overrides:
       software_key: "{{ software_key }}"
 
       source:
         type: "jfrog"
         original_path: "{{ sw.source.url }}"
-        requires_transfer: true
-
-        # carry auth/material forward (executor can use it)
-        api_key: "{{ sw.source.api_key | default(omit) }}"
-        bearer_token: "{{ sw.source.bearer_token | default(omit) }}"
-        username: "{{ sw.source.username | default(omit) }}"
-        password: "{{ sw.source.password | default(omit) }}"
-
+        bearer_token: "{{ jfrog_bearer_token }}"
+        
       installer:
         final_path: "{{ jfrog_cache_path }}"
         filename: "{{ sw.source.filename }}"
@@ -38,7 +29,14 @@
       install:
         type: "{{ sw.install.type }}"
         arguments: "{{ sw.install.arguments | default('') }}"
+        destination: "{{ sw.install.destination | default('') }}"
         check:
           path_exists: "{{ sw.install.check.path_exists }}"
 
-      path: "{{ sw.path | default(omit) }}"    
+      path: "{{ sw.path | default(omit)}}"
+
+      env: "{{ sw.env | default(omit)}}"
+
+- name: Override values with calculated ones (jfrog)
+  ansible.builtin.set_fact:
+    resolved_item: "{{ sw | combine(_resolved_item_overrides | default({}), recursive=True) }}"

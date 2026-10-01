@@ -1,0 +1,17 @@
+- name: Enable required IIS features
+  ansible.windows.win_feature:
+    name:
+      - Web-WebSockets
+      - Web-AppInit
+      - Web-ISAPI-Ext
+      - Web-ISAPI-Filter
+      - Web-Asp-Net45
+      - Web-Windows-Auth
+      - Web-Url-Auth
+    state: present
+    include_management_tools: yes
+    become: yes
+
+
+- name: Restart IIS service
+  include_tasks: iis_restart.yml

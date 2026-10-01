@@ -1,0 +1,57 @@
+uipath_dll_config_path: "{{ uipath_orchestrator_installed_path }}\\UiPath.Orchestrator.dll.config"
+
+uipath_dll_config_restore_patches:
+  - desc: "robotElastic documentType (ES 7.x+ rejects mapping types)"
+    xpath: "/configuration/*[local-name()='nlog']/*[local-name()='targets']/*[local-name()='target']/*[local-name()='target'][@name='robotElastic']"
+    attribute: documentType
+    value: ""
+
+  - desc: "robotElastic enableApiVersioningHeader"
+    xpath: "/configuration/*[local-name()='nlog']/*[local-name()='targets']/*[local-name()='target']/*[local-name()='target'][@name='robotElastic']"
+    attribute: enableApiVersioningHeader
+    value: "true"
+
+  - desc: "serverElastic disabled - uri"
+    xpath: "/configuration/*[local-name()='nlog']/*[local-name()='targets']/*[local-name()='target']/*[local-name()='target'][@name='serverElastic']"
+    attribute: uri
+    value: ""
+
+  - desc: "serverElastic disabled - requireAuth"
+    xpath: "/configuration/*[local-name()='nlog']/*[local-name()='targets']/*[local-name()='target']/*[local-name()='target'][@name='serverElastic']"
+    attribute: requireAuth
+    value: "false"
+
+  - desc: "serverElastic disabled - username"
+    xpath: "/configuration/*[local-name()='nlog']/*[local-name()='targets']/*[local-name()='target']/*[local-name()='target'][@name='serverElastic']"
+    attribute: username
+    value: ""
+
+  - desc: "serverElastic disabled - password"
+    xpath: "/configuration/*[local-name()='nlog']/*[local-name()='targets']/*[local-name()='target']/*[local-name()='target'][@name='serverElastic']"
+    attribute: password
+    value: ""
+
+  - desc: "Robot.* rule writes to both Elasticsearch and database"
+    xpath: "/configuration/*[local-name()='nlog']/*[local-name()='rules']/*[local-name()='logger'][@ruleName='primaryRobotLogsTarget']"
+    attribute: writeTo
+    value: "database,robotElasticBuffer"
+
+  - desc: "Orchestrator reads Robot logs from both sources"
+    xpath: "/configuration/appSettings/add[@key='Logs.RobotLogs.ReadTarget']"
+    attribute: value
+    value: "database,robotElasticBuffer"
+
+  - desc: "AcceptedRootUrls"
+    xpath: "/configuration/appSettings/add[@key='AcceptedRootUrls']"
+    attribute: value
+    value: "http://localhost:6234"
+
+  - desc: "Video recording retention job enabled"
+    xpath: "/configuration/appSettings/add[@key='VideoRecording.RetentionJobEnabled']"
+    attribute: value
+    value: "true"
+
+  - desc: "Enable automatic schema migrations (this is always the sole node - old primary is wiped before this runs)"
+    xpath: "/configuration/appSettings/add[@key='Database.EnableAutomaticMigrations']"
+    attribute: value
+    value: "true"

@@ -1,0 +1,64 @@
+- name: Wait for Orchestrator to be ready
+  win_uri:
+    url: "{{ uipath_action_center.orchestrator_url }}/api/Status/Get"
+    method: GET
+    status_code: 200
+    timeout: 30
+  register: orch_ready
+  until: orch_ready.status_code == 200
+  retries: 12       
+  delay: 10
+  ignore_errors: true 
+
+- name: Authenticate to Orchestrator as Host admin
+  win_uri:
+    url: "{{uipath_action_center.orchestrator_url}}/api/account/Authenticate"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+    body: >-
+      {
+        "tenancyName": "host",
+        "usernameOrEmailAddress": "admin",
+        "password": "{{ uipath_action_center.uipath_tenant_admin_password }}"
+      }
+    return_content: yes
+    validate_certs: no
+    timeout: 120
+  register: auth_response
+  no_log: true
+
+
+- name: Extract bearer token
+  set_fact:
+    orch_bearer_token: "{{ (auth_response.content | from_json).result }}"
+  no_log: true
+
+- name: Fetch installation token for Action Center
+  win_uri:
+    url: "{{uipath_action_center.orchestrator_url}}/identity/api/Account/ClientAccessToken"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ orch_bearer_token }}"
+    return_content: yes
+    timeout: 120
+  register: install_token_response
+  no_log: true
+
+- name: Store installation token
+  set_fact:
+    uipath_installation_token: "{{ install_token_response.content }}"
+  no_log: true
+
+- name: Repopulate the variable with the installation token
+  set_fact:
+    uipath_action_center: >-
+      {{
+        uipath_action_center | combine({'identity_installation_token': uipath_installation_token})
+      }}
+
+- name: Install UiPath installer packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: uipath_platform.yml
+    software_package_list: "{{ uipath_action_center_packages }}"

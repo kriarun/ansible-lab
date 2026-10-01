@@ -1,5 +1,5 @@
 # Copied from inventories/lab/group_vars/uipath_orchestrator.yml.
-# Environment tokens rewritten for 'tst'. VERIFY before use: ansible_user, vault_secret_path,
+# Environment tokens rewritten for 'prd'. VERIFY before use: ansible_user, vault_secret_path,
 # FQDNs/URLs, DB server + schema, Elasticsearch URL, app pool account, certificate subject,
 # Identity client IDs, Dynatrace package/tags.
 dynatrace_packages:
@@ -10,26 +10,26 @@ uipath_orchestrator_install_log: "C:\\Temp\\ansible\\uipath_orchestrator_install
 
 installer_cache_dir: "C:\\Temp\\ansible\\installers"
 
-vault_secret_path: "3111-ansible/tst/uipath_orchestrator"
+vault_secret_path: "3111-ansible/prd/uipath_orchestrator"
 
 uipath_orchestrator_parameters_file: 'C:\sources\uipath_migration\uipath_orchestrator_install.json'
 
-uipath_orchestrator_fqdn: "rpa-tst.bank.ch"
+uipath_orchestrator_fqdn: "rpa-prd.bank.ch"
 
 dynatrace_install_arguments:
-  host_group: "uipath_tst"
+  host_group: "uipath_prd"
   al_number: "AL-Number=1234"
-  application: "RPA_TST"
-  custom_hostname: "Custom-Hostname=Orchestrator-Tst"
+  application: "RPA_PRD"
+  custom_hostname: "Custom-Hostname=Orchestrator-Prd"
   hostname: "Hostname=XXXX"
-  stage: "Stage=tst"
+  stage: "Stage=prd"
   montoring_mode: "infra-only"
   log_content_access_enabled: true
   log_access_enabled: true  
   host_tags_group: "YYYYY"
-  host_tags_environment: "environment=tst"
+  host_tags_environment: "environment=prd"
   host_tags_monitoring_os: "log_monitoring=windows"
-  host_tags_monitoring_service: "log_monitoring=uipath_orchestrator_tst"
+  host_tags_monitoring_service: "log_monitoring=uipath_orchestrator_prd"
 
 ssl_certificate:
   subject: 'CN=cn OU = ou O = Bank AG L = Location S = Location C = CH'
@@ -45,13 +45,13 @@ uipath_runtime:
   db_host: "dbserver.ch"
   db_name: "master"
   db_auth: windows  
-  default_schema_name: "RPA_TST"
+  default_schema_name: "RPA_PRD"
   test_automation_schema_name: "TestAutomation"
-  elastic_url: 'https://rpa-reporting-tst.ch:9200'
+  elastic_url: 'https://rpa-reporting-prd.ch:9200'
   elastic_username: "elastic"
   elastic_password: "{{ _vault_secret.elastic_search }}"
   elastic_validate_certs: false
-  public_url : 'https://rpa-tst.ch'
+  public_url : 'https://rpa-prd.ch'
 
 
 
@@ -65,7 +65,7 @@ install_json:
     ta_db_connection_string: "Data Source={{ uipath_runtime.db_server }};Initial Catalog={{uipath_runtime.test_automation_schema_name}};Integrated Security=True"
     app_encryption_key: "{{ _vault_secret.app_encryption_key }}"    
     is_db_connection_string: "Data Source={{ uipath_runtime.db_server }};Initial Catalog={{uipath_runtime.default_schema_name}};Integrated Security=True"
-    apppool_user_name: 'mb-main\\sa_rpa_tst'
+    apppool_user_name: 'mb-main\\sa_rpa_prd'
     apppool_password: "{{ _vault_secret.apppool_password }}"
     public_url: "{{ uipath_runtime.public_url }}"
     app_nuget_packages_key: "{{ _vault_secret.app_nuget_packages_key }}"
@@ -88,7 +88,7 @@ install_json:
 
 
 uipath_action_center:  
-  fqdn: "rpa-tst.ch"
+  fqdn: "rpa-prd.ch"
   website_port: "8445"
   certificate_subject: "{{ssl_certificate.thumbprint}}"
   apppool_identity_type: "ApplicationPoolIdentity"

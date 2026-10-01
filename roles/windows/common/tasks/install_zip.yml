@@ -1,0 +1,11 @@
+---
+- name: Ensure destination directory exists
+  ansible.windows.win_file:
+    path: "{{ pkg.install.destination }}"
+    state: directory
+
+- name: Extract ZIP package
+  win_unzip:
+    src: "{{ pkg.installer.final_path }}"
+    dest: "{{ pkg.install.destination }}"
+    

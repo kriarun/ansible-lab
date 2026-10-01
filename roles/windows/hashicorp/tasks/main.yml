@@ -1,0 +1,16 @@
+- name: Fetch secret from Vault
+  ansible.builtin.uri:
+    url: "{{ vault_addr }}/v1/{{ vault_mount_point }}/data/{{ vault_secret_path }}"
+    method: GET
+    headers:
+      X-Vault-Token: "{{ vault_token }}"
+    return_content: true
+    status_code: 200
+  register: _vault_response
+  delegate_to: localhost
+  no_log: true
+
+- name: Extract secrets
+  ansible.builtin.set_fact:
+    _vault_secret: "{{ _vault_response.json.data.data }}"
+  no_log: true

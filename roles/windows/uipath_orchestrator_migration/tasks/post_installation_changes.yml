@@ -1,0 +1,22 @@
+
+- name: Snapshot dll config before any patches are applied
+  ansible.windows.win_copy:
+    src: "{{ uipath_dll_config_path }}"
+    dest: "{{ uipath_dll_config_path }}.pre-patch.bak"
+    remote_src: yes
+    force: no   # keep the very first (pristine) snapshot; never overwrite on re-runs
+
+- name: Restore production config tuning and correct secondary-node defaults
+  community.windows.win_xml:
+    path: "{{ uipath_dll_config_path }}"
+    xpath: "{{ item.xpath }}"
+    attribute: "{{ item.attribute }}"
+    fragment: "{{ item.value }}"
+    type: attribute
+    state: present    
+  loop: "{{ uipath_dll_config_restore_patches }}"
+  loop_control:
+    label: "{{ item.desc }}"
+
+- name: Restart IIS service
+  include_tasks: iis_restart.yml

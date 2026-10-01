@@ -1,0 +1,105 @@
+{
+    "Properties": [
+        { "Name": "REMOVE", "Value": "InsightsFeature" },
+        { "Name": "IS_CERTIFICATE_SUBJECT", "Value": "{{ install_json.properties.is_certificate_subject }}" },
+        { "Name": "APP_NUGET_ACTIVITIES_KEY", "Value": "{{ install_json.properties.app_nuget_activities_key }}" },
+        { "Name": "DB_CONNECTION_STRING", "Value": "{{  install_json.properties.db_connection_string }}" },
+        { "Name": "REDIS_PORT", "Value": "6379" },
+        { "Name": "WEBSITE_PORT_DO_VALIDATE", "Value": "1" },
+        { "Name": "UPDSVR_DB_CONNECTION_STRING", "Value": "{{ install_json.properties.updsvr_db_connection_string }}" },
+        { "Name": "STORAGE_TYPE", "Value": "FileSystem" },
+        { "Name": "APPPOOL_NAME", "Value": "UiPath Orchestrator" },
+        { "Name": "CERTIFICATE_SUBJECT", "Value": "{{ install_json.properties.certificate_subject }}" },
+        { "Name": "ORCHESTRATORFOLDER", "Value": "C:\\Program Files (x86)\\UiPath\\Orchestrator\\" },
+        { "Name": "APPPOOL_USER_NAME", "Value": "{{ install_json.properties.apppool_user_name }}" },
+        { "Name": "TA_DB_CONNECTION_STRING", "Value": "{{ install_json.properties.ta_db_connection_string }}" },
+        { "Name": "WEBSITE_PORT_FIREWALL", "Value": "1" },
+        { "Name": "APP_ENCRYPTION_KEY", "Value": "{{ install_json.properties.app_encryption_key }}" },
+        { "Name": "APPPOOL_IDENTITY_TYPE", "Value": "USER" },
+        { "Name": "ADDLOCAL", "Value": "OrchestratorFeature,IdentityFeature,IdentityDecoupledFeature,WebhooksFeature,ResourceCatalogFeature,TestAutomationFeature,UpdateServerFeature" },
+        { "Name": "IS_DB_CONNECTION_STRING", "Value": "{{ install_json.properties.is_db_connection_string }}" },
+        { "Name": "WEBSITE_PORT", "Value": "443" },
+        { "Name": "IS_APPPOOL_NAME", "Value": "Identity" },
+        { "Name": "STORAGE_LOCATION", "Value": "RootPath=.\\Storage" },
+        { "Name": "APPPOOL_PASSWORD", "Value": "{{  install_json.properties.apppool_password }}" },
+        { "Name": "IS_WEBAPP_NAME", "Value": "Identity" },
+        { "Name": "PUBLIC_URL", "Value": "{{  install_json.properties.public_url }}" },        
+        { "Name": "APP_NUGET_PACKAGES_KEY", "Value": "{{ install_json.properties.app_nuget_packages_key }}" },
+        { "Name": "ELASTIC_URL", "Value": "{{ install_json.properties.elastic_url }}" },
+        { "Name": "ELASTIC_USER_NAME", "Value": "{{ install_json.properties.elastic_user_name }}" },
+        { "Name": "ELASTIC_USER_PASSWORD", "Value": "{{ install_json.properties.elastic_user_password }}" },
+        { "Name": "ELASTIC_REQUIRES_AUTH", "Value": "{{ install_json.properties.elastic_requires_auth }}" }
+    ],
+    "IdentitySeedInfo": {
+        "OrchestratorClientsConfig": {
+            "MasterClient": {
+                "ClientName": "IdentityMasterClient",
+                "ClientId": "",
+                "ClientSecret": "",
+                "FrontChannelLogoutUri": null,
+                "RedirectUri": null,
+                "PostLogoutUri": null,
+                "LocalRedirectUris": [],
+                "LocalPostLogoutUris": []
+            },
+            "OrchestratorPKCEOpenIdClient": {
+                "ClientName": "Orchestrator.PKCEOpenId",
+                "ClientId": "{{ install_json.identityseedinfo.orchestratorpkceopenidclient.clientid }}",
+                "ClientSecret": null,
+                "FrontChannelLogoutUri": null,
+                "RedirectUri": "{{ install_json.properties.public_url }}/oidc/login",
+                "PostLogoutUri": "{{ install_json.properties.public_url }}",
+                "LocalRedirectUris": [
+                    "http://{{ uipath_orchestrator_fqdn }}/oidc/login",
+                    "https://{{ uipath_orchestrator_fqdn }}/oidc/login",
+                    "https://{{ uipath_orchestrator_fqdn }}/oidc/login",
+                    "https://{{ uipath_orchestrator_fqdn }}/oidc/login"
+                ],
+                "LocalPostLogoutUris": [
+                    "http://{{ uipath_orchestrator_fqdn}}/",
+                    "https://{{ uipath_orchestrator_fqdn }}/",
+                    "https://{{ uipath_orchestrator_fqdn }}/oidc/login",
+                    "https://{{ uipath_orchestrator_fqdn }}/oidc/login"
+                ]
+            },
+            "OrchestratorS2SClient": {
+                "ClientName": "Orchestrator.S2S",
+                "ClientId": "{{ install_json.identityseedinfo.orchestrators2sclient.clientid  }}",
+                "ClientSecret": "{{ install_json.identityseedinfo.orchestrators2sclient.clientsecret }}",
+                "FrontChannelLogoutUri": null,
+                "RedirectUri": null,
+                "PostLogoutUri": null,
+                "LocalRedirectUris": [],
+                "LocalPostLogoutUris": []
+            },
+            "OrchestratorSwaggerClient": {
+                "ClientName": "Orchestrator.Swagger",
+                "ClientId": "{{ install_json.identityseedinfo.orchestratorswaggerclient.clientid }}",
+                "ClientSecret": null,
+                "FrontChannelLogoutUri": null,
+                "RedirectUri": "{{ install_json.properties.public_url }}/swagger/oauth2-redirect.html",
+                "PostLogoutUri": null,
+                "LocalRedirectUris": [
+                    "http://{{ uipath_orchestrator_fqdn }}/swagger/oauth2-redirect.html",
+                    "https://{{uipath_orchestrator_fqdn}}/swagger/oauth2-redirect.html",
+                    "https://{{uipath_orchestrator_fqdn }}/swagger/oauth2-redirect.html",
+                    "https://{{ uipath_orchestrator_fqdn }}/swagger/oauth2-redirect.html"
+                ],
+                "LocalPostLogoutUris": []
+            },
+            "OrchestratorRopcClient": {
+                "ClientName": "Orchestrator.Ropc",
+                "ClientId": "",
+                "ClientSecret": "{{ install_json.identityseedinfo.orchestratorropcclient.clientsecret  }}",
+                "FrontChannelLogoutUri": null,
+                "RedirectUri": null,
+                "PostLogoutUri": null,
+                "LocalRedirectUris": [],
+                "LocalPostLogoutUris": []
+            }
+        },
+        "IdentitySecrets": {
+            "EncryptionKey": "{{ install_json.identitysecrets.encryptionkey  }}"
+        }
+    }
+}

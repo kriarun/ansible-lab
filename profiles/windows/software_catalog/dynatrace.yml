@@ -1,0 +1,25 @@
+Dynatrace-OneAgent-Windows-1.305.109_TST:
+  source:
+    type: jfrog
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/dynatrace/Dynatrace-OneAgent-Windows-1.305.109_TST.exe'
+    filename: "Dynatrace-OneAgent-Windows-1.305.109_TST.exe"
+
+  install:
+    type: exe
+    arguments: >-
+      /quiet
+      --set-host-group="{{dynatrace_install_arguments.host_group}}"
+      --set-host-property="{{ dynatrace_install_arguments.al_number }}"
+      --set-host-property="{{ dynatrace_install_arguments.application }}"
+      --set-host-property="{{ dynatrace_install_arguments.custom_hostname }}"
+      --set-host-property="{{ dynatrace_install_arguments.hostname }}"
+      --set-host-property="{{ dynatrace_install_arguments.stage }}"
+      --set-monitoring-mode="{{ dynatrace_install_arguments.montoring_mode }}"
+      --set-app-log-content-access={{ dynatrace_install_arguments.log_content_access_enabled }}
+      --set-system-logs-access-enabled={{ dynatrace_install_arguments.log_access_enabled }}
+      --set-host-tag="{{ dynatrace_install_arguments.host_tags_group }}"
+      --set-host-tag="{{ dynatrace_install_arguments.host_tags_environment }}"
+      --set-host-tag="{{ dynatrace_install_arguments.host_tags_monitoring_os }}"
+      --set-host-tag="{{ dynatrace_install_arguments.host_tags_monitoring_service }}"
+    check:
+      path_exists: 'C:\Program Files\dynatrace\oneagent\agent\bin\1.305.109.20250203-163926\any'

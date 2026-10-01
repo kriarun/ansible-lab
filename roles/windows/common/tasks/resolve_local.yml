@@ -1,6 +1,3 @@
-# Expects: software_key, sw
-# Sets: resolved_item
-
 - name: Validate local source fields
   ansible.builtin.assert:
     that:
@@ -16,13 +13,12 @@
 
 - name: Set resolved item (local)
   ansible.builtin.set_fact:
-    resolved_item:
+    _resolved_item_overrides:
       software_key: "{{ software_key }}"
 
       source:
         type: "local"
         original_path: "{{ local_full_path }}"
-        requires_transfer: false
 
       installer:
         final_path: "{{ local_full_path }}"
@@ -31,7 +27,12 @@
       install:
         type: "{{ sw.install.type }}"
         arguments: "{{ sw.install.arguments | default('') }}"
+        destination: "{{ sw.install.destination | default('') }}"
         check:
           path_exists: "{{ sw.install.check.path_exists }}"
 
-      path: "{{ sw.path | default(omit) }}"    
+      path: "{{ sw.path | default(omit)}}"
+
+- name: Override values with calculated ones (jfrog)
+  ansible.builtin.set_fact:
+    resolved_item: "{{ sw | combine(_resolved_item_overrides | default({}), recursive=True) }}"

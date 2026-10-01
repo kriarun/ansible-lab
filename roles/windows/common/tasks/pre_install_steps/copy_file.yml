@@ -1,0 +1,22 @@
+---
+- name: Validate pre install inputs
+  ansible.builtin.assert:
+    that:
+      - _pre_install_step.name is defined
+      - _pre_install_step.type is defined
+      - _pre_install_step.source is defined
+      - _pre_install_step.destination is defined
+    fail_msg: >-
+      pre_install_step with copy_file type must have name, source and destination defined in the software_catalog folder for the software entry.
+
+- name: Pre install step - ensure destination directory exists
+  ansible.windows.win_file:
+    path: "{{ _pre_install_step.destination }}"
+    state: directory
+
+- name: Pre install step - Copy file for {{ _software_key }}
+  ansible.windows.win_copy:
+    src: "{{ _pre_install_step.source }}"
+    dest: "{{ _pre_install_step.destination }}"
+    remote_src: false
+    force: true
