@@ -88,7 +88,9 @@ Priority: **P1** = before any non-lab run · **P2** = before prd / audit · **P3
 - [ ] **Merge the 3 env-var helpers** — `add_env.yml`, `configure_environment_variables.yml`, `set_windows_env.yml` (+ env handling in `execute_plan.yml`).
 - [ ] **Put the "Expects / Sets" contract header back** at the top of each task file.
 - [ ] **Fix typo names** — `fetch_thumprint`, `montoring_mode`, `uipath_ochestrator_*`; role `uipath_orchestrator_migration` uses `uipath_orchestrator_packages`.
-- [ ] **README for common** — one diagram (catalog → resolve → acquire → install → verify), catalog entry schema, "install new software in 3 steps". Merge with `docs/how-to/add-a-software-catalog-entry.md` instead of duplicating.
+- [ ] **Stage-prefixed task names** — `catalog | …`, `resolve | …`, `acquire | …`, `install | …`, `verify | …` so the run log reads like the README diagram.
+- [ ] **Remove indirection rather than add it** — fewer include/set_fact hops where possible.
+- [ ] **README for common** — one diagram (catalog → resolve → acquire → install → verify), catalog entry schema, "install new software in 3 steps", and one complete worked example (e.g. Git: catalog entry → resolved package → download → install). Merge with `docs/how-to/add-a-software-catalog-entry.md` instead of duplicating.
 
 ---
 

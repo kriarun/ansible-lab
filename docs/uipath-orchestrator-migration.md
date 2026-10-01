@@ -167,7 +167,7 @@ ansible-playbook -i inventories/<env> playbooks/windows/platform/uipath_orchestr
 
 ```mermaid
 flowchart LR
-    subgraph BASE["Prerequisites"]
+    subgraph BASE["Platform baseline"]
         direction TB
         R1["hashicorp"] --> R2["dynatrace"] --> R3["certificate"] --> R4["microsoft_dotnet_framework"]
         R4 --> R5["iis"] --> R6["dotnet_hosting"] --> R7["iis_url_rewrite"] --> R8["microsoft_web_deploy"]
@@ -193,7 +193,10 @@ flowchart LR
 | **`uipath_orchestrator_migration`** | Installs Orchestrator as secondary node and applies post-install config — see below |
 | **`uipath_action_center`** | Gets an installation token from Orchestrator and installs Action Center — see below |
 
-The prerequisite roles are simple: a Vault lookup, a certificate import, and installs from the software catalog (download from JFrog → install → verify a marker file). Anything already installed is skipped automatically.
+The **platform baseline** roles are simple: a Vault lookup, a certificate import, and installs from the software catalog (download from JFrog → install → verify a marker file). Anything already installed is skipped automatically.
+
+> [!NOTE]
+> **Why are these roles in the profile and not in the playbook's `pre_tasks`?** The machine profile is the single list of what a machine contains, and the verify job prints exactly that list before anything runs. `pre_tasks` only prepares the play (load profile, compute `final_roles`).
 
 ---
 
