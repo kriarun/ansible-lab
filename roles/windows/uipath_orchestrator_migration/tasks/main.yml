@@ -5,7 +5,8 @@
     - fetch_thumprint.yml
     - external_validation.yml
     - enable_iis_features.yml
-    - install_orchestrator.yml    
+    - install_orchestrator.yml
+    - restore_host_libraries.yml
     - post_installation_changes.yml
     - windows_auth_scoped_tasks.yml
   loop_control:

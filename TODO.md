@@ -57,6 +57,16 @@ Priority: **P1** = before any non-lab run · **P2** = before prd / audit · **P3
 
 ---
 
+## UiPath Storage (package files)
+
+- [x] **Storage scope decided (2026-10-05):** only `Orchestrator-Host\Libraries` (~3 GB) + `Orchestrator-<uuid>\Processes` (~360 MB). Not needed: SystemBuckets (videos), ExecutionMedia, Media, Retention, JobPersistence (→ no suspended jobs at cutover).
+- [x] **Host libraries restore automated (2026-10-05):** `restore_host_libraries.yml` after `install_orchestrator`; skips with warning if `uipath_host_libraries_source` is missing.
+- [ ] **P2 — Test `restore_host_libraries` in lab** — check that a library downloads from the UI afterwards (confirms inherited permissions are enough).
+- [ ] **P3 — Processes: backup only** — restore manually / republish if a robot needs an old version.
+- [ ] **P3 — Long-term: move `STORAGE_LOCATION` off C:** (data disk or share) so an OS rebuild never loses package files.
+
+---
+
 ## Inventories
 
 - [ ] **P1 — Verify generated values** in `inventories/{dev,tst,sandbox,prd}/group_vars/uipath_orchestrator.yml` (copied from lab on 2026-10-01; env tokens rewritten by pattern — header lists what to check). Dynatrace now points to the `_TST` package in every env (see Dynatrace item above).

@@ -1,0 +1,47 @@
+---
+# Restores the host library feed (Orchestrator-Host\Libraries) that was lost with the OS wipe.
+# The database still lists these libraries; without the files, new robots cannot download them.
+# Source folder is copied to the machine manually (checklist step 8). If it is missing, we warn and skip:
+# Orchestrator works without it and the restore can be done later.
+
+- name: Restore host libraries | check source folder
+  ansible.windows.win_stat:
+    path: "{{ uipath_host_libraries_source }}"
+  register: _host_libraries_source
+
+- name: Restore host libraries | WARNING - source folder missing, skipping
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: {{ uipath_host_libraries_source }} not found - host libraries were NOT restored.
+      Orchestrator runs, but new robots cannot download libraries until they are copied to
+      {{ uipath_host_libraries_dest }} (see migration doc, step 13).
+  when: not (_host_libraries_source.stat.exists and _host_libraries_source.stat.isdir)
+
+- name: Restore host libraries | copy and verify
+  when: _host_libraries_source.stat.exists and _host_libraries_source.stat.isdir
+  block:
+    # No /MIR (never delete) and no /SEC (files inherit the Storage folder permissions of the app pool account).
+    - name: Restore host libraries | robocopy
+      community.windows.win_robocopy:
+        src: "{{ uipath_host_libraries_source }}"
+        dest: "{{ uipath_host_libraries_dest }}"
+        flags: /E /R:2 /W:5 /NP /NFL /NDL
+
+    - name: Restore host libraries | count files in source and target
+      ansible.windows.win_powershell:
+        script: |
+          [pscustomobject]@{
+            source = @(Get-ChildItem -LiteralPath '{{ uipath_host_libraries_source }}' -Recurse -File).Count
+            target = @(Get-ChildItem -LiteralPath '{{ uipath_host_libraries_dest }}' -Recurse -File).Count
+          }
+      register: _host_libraries_count
+      changed_when: false
+
+    - name: Restore host libraries | assert all files arrived
+      ansible.builtin.assert:
+        that:
+          - (_host_libraries_count.output[0].target | int) >= (_host_libraries_count.output[0].source | int)
+        fail_msg: >-
+          Host libraries incomplete: {{ _host_libraries_count.output[0].target }} files in target,
+          {{ _host_libraries_count.output[0].source }} in source.
+        success_msg: "Host libraries restored: {{ _host_libraries_count.output[0].target }} files."

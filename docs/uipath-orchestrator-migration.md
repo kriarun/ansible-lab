@@ -86,8 +86,9 @@ flowchart LR
         s2["2. Export certificates"]:::rpa
         s3["3. Generate parameters JSON"]:::rpa
         s4["4. Copy config files<br/>(reference only)"]:::rpa
+        s4b["4b. Backup Libraries + Processes<br/>to share (keep structure)"]:::rpa
         s5["5. Snapshot 2016 VM"]:::win
-        s1 --> s2 --> s3 --> s4 --> s5
+        s1 --> s2 --> s3 --> s4 --> s4b --> s5
     end
     subgraph P2["② Rebuild OS"]
         direction TB
@@ -97,7 +98,7 @@ flowchart LR
     end
     subgraph P3["③ Configure"]
         direction TB
-        s8["8. Certificates +<br/>service account"]:::rpa
+        s8["8. Certificates, Libraries folder<br/>+ service account"]:::rpa
         s9["9. Inventory variables"]:::rpa
         s10["10. Secrets in Vault"]:::rpa
         s8 --> s9 --> s10
@@ -106,7 +107,8 @@ flowchart LR
         direction TB
         s11["11. Run pipeline"]:::ans
         s12["12. Verify + delete<br/>install.json"]:::rpa
-        s11 --> s12
+        s13["13. Test package download<br/>(Processes: restore only if needed)"]:::rpa
+        s11 --> s12 --> s13
     end
     P1 --> P2 --> P3 --> P4
 
@@ -128,17 +130,27 @@ flowchart LR
 | 2 | Export certificates (with private key) | RPA | `.pfx` files, stored safely |
 | 3 | Generate parameters JSON with `Generate-ParametersFile.ps1` (UiPath tools folder) | RPA | Source of values for inventory + Vault |
 | 4 | Copy config files from the old server: `UiPath.Orchestrator.dll.config`, Identity `appsettings.Production.json`, ResourceCatalog `appsettings.Production.json`, `web.config` | RPA | **Reference only** — to compare if something looks wrong later |
+| 4b | Check that **no jobs are suspended** (their state is not migrated). Copy `Storage\Orchestrator-Host\Libraries` and `Storage\Orchestrator-<uuid>\Processes` to the share, **keeping the folder structure** (no need to know the uuid). Nothing else is needed (videos, execution media, retention, job persistence). **Keep this backup after the migration.** | RPA | Package files for step 13 |
 | 5 | Snapshot of the 2016 VM | Windows | Rollback point |
 | 6 | Request OS installation | RPA → Windows | Windows Server 2025 on the same VM |
 | 7 | Initial snapshot of the fresh 2025 VM | Windows | Clean restart point for re-runs |
-| 8 | Copy certificates, add service account (local admin) | RPA | Machine ready for Ansible |
+| 8 | Copy certificates and the **Libraries** backup to `C:\sources\uipath_migration\Storage\Orchestrator-Host\Libraries`, add service account (local admin) | RPA | Machine ready for Ansible |
 | 9 | Update `inventories/<env>/group_vars/uipath_orchestrator.yml` | RPA | Correct non-secret values |
 | 10 | Validate configuration, add secrets to Vault | RPA | Secrets available at runtime |
 | 11 | Run the playbook (pipeline) | RPA | Orchestrator + Action Center installed |
 | 12 | Verify `install.json`, then **delete it manually** | RPA | No secrets left on disk |
+| 13 | Download one package from **Packages → Libraries** (restored by Ansible). *Only if needed:* copy `Processes` back manually to `Orchestrator\Storage\Orchestrator-<uuid>\Processes` | RPA | Package downloads work for new robots |
 
 > [!IMPORTANT]
 > `install.json` contains secrets (encryption keys, passwords, client secrets). It is intentionally kept after the run so you can verify it — **do not forget step 12.**
+
+> [!NOTE]
+> **Why Storage matters (step 4b / 13).** Orchestrator keeps package files on local disk (`STORAGE_TYPE=FileSystem`, `.\Storage`). The OS wipe deletes them, but the **database still lists them** — so packages appear in the UI but cannot be downloaded.
+>
+> - `Orchestrator-Host\Libraries` — host library feed (our tenant uses the host feed for libraries)
+> - `Orchestrator-<uuid>\Processes` — tenant process packages (`<uuid>` = tenant key, same DB → same folder name)
+>
+> Existing robots keep working from their local NuGet cache. **New robots, a cleared cache, or an older package version will fail** until Storage is restored. **Libraries** are restored by Ansible (`restore_host_libraries`). **Processes** are backed up only: few in number, and they can be republished from Studio or copied back by hand. Restoring later works at any time (verified on DEV), as long as the 4b backup is kept.
 
 ---
 
@@ -209,7 +221,8 @@ flowchart TB
     S1["fetch_thumprint<br/>find valid SSL cert → thumbprint"] --> S2["external_validation<br/>SQL + Elasticsearch reachable?"]
     S2 --> S3["enable_iis_features<br/>WebSockets, AppInit, ISAPI,<br/>ASP.NET 4.5, Windows Auth, URL Auth"]
     S3 --> S4["install_orchestrator<br/>render install.json → MSI<br/>SECONDARY_NODE=1"]
-    S4 --> S5["post_installation_changes<br/>backup dll.config → apply patches"]
+    S4 --> S4b["restore_host_libraries<br/>copy Orchestrator-Host\Libraries<br/>(skipped with warning if missing)"]
+    S4b --> S5["post_installation_changes<br/>backup dll.config → apply patches"]
     S5 --> S6["windows_auth_scoped_tasks<br/>Windows Auth on /Identity only"]
     S6 --> OK(["Orchestrator running"])
 ```
@@ -220,6 +233,7 @@ flowchart TB
 | `external_validation` | Fail fast if SQL Server (TCP + Windows auth) or Elasticsearch is not reachable — before touching the machine. |
 | `enable_iis_features` | IIS features Orchestrator requires on top of the base `iis` role. |
 | `install_orchestrator` | Renders `install.json` from inventory + Vault values and runs the MSI as secondary node. |
+| `restore_host_libraries` | The OS wipe deleted the library files, but the DB still lists them. Copies them from `uipath_host_libraries_source` (no delete, permissions inherited) and checks the file count. **If the folder is missing, it warns and skips** — Orchestrator still runs; only new robots cannot download libraries until restored. |
 | `post_installation_changes` | A secondary-node install comes with secondary-node defaults. We restore our production settings in `UiPath.Orchestrator.dll.config` (Elasticsearch log targets, `AcceptedRootUrls`, video retention job, automatic DB migrations). Patches are listed in `defaults/main.yml`. The original file is kept once as `UiPath.Orchestrator.dll.config.pre-patch.bak`. |
 | `windows_auth_scoped_tasks` | Windows Authentication must be enabled **only** on the `Identity` app. The root Orchestrator app stays Anonymous so `/api/account/authenticate` keeps working (Action Center needs it). Verified after an IIS restart. |
 
