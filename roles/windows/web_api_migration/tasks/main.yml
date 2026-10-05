@@ -1,0 +1,21 @@
+# current - no names, hard to read in CI output
+- include_tasks: stop_iis.yml
+
+# fix
+- name: Stop IIS
+  include_tasks: stop_iis.yml
+
+- name: Import environment variables
+  include_tasks: import_env_variables.yml
+
+- name: Restore Windows server roles
+  include_tasks: restore_server_roles.yml
+
+- name: Restore IIS applications
+  include_tasks: restore_applications.yml
+
+- name: Start IIS
+  include_tasks: start_iis.yml
+
+- name: Verify IIS state
+  include_tasks: verify.yml

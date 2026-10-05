@@ -1,0 +1,5 @@
+# stop_iis.yml
+- name: Stop IIS
+  ansible.windows.win_service:
+    name: W3SVC
+    state: stopped

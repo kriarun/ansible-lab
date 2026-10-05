@@ -1,0 +1,4 @@
+# import_env_variables.yml
+- name: Import environment variables
+  ansible.windows.win_shell: |
+    reg import "{{ web_api_migration_backup_dir }}\env_variables.reg"

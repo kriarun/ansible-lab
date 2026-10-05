@@ -1,0 +1,11 @@
+# verify.yml
+- name: Verify IIS is running
+  ansible.windows.win_service:
+    name: W3SVC
+  register: iis_state
+
+- name: Assert IIS started successfully
+  ansible.builtin.assert:
+    that:
+      - iis_state.state == "started"
+    fail_msg: "IIS failed to start after migration"
