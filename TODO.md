@@ -70,7 +70,7 @@ Priority: **P1** = before any non-lab run · **P2** = before prd / audit · **P3
 ## Inventories
 
 - [ ] **P1 — Verify generated values** in `inventories/{dev,tst,sandbox,prd}/group_vars/uipath_orchestrator.yml` (copied from lab on 2026-10-01; env tokens rewritten by pattern — header lists what to check). Dynatrace now points to the `_TST` package in every env (see Dynatrace item above).
-- [ ] **P2 — Lab overrides the service account** — `inventories/lab/group_vars/uipath_orchestrator.yml` sets `ansible_user: user` / `ansible_password: lookup('env','user')`, which wins over `windows.yml`. Removed in the other envs; decide for lab.
+- [x] **Service account override is intentional (2026-10-07):** `ansible_user: sa_rpa_<env>` in every `uipath_orchestrator.yml` (needs SQL access; commented in the file). Verify account names / env var `UIPATH_SA_RPA_PASSWORD_<ENV>` per environment.
 - [ ] **P3 — `inventories/tst/group_vars/all.yml`** — copy-paste from lab (`ansible_connection: local`, `env_name: lab`).
 
 ---

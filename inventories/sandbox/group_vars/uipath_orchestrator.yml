@@ -2,6 +2,13 @@
 # Environment tokens rewritten for 'sandbox'. VERIFY before use: ansible_user, vault_secret_path,
 # FQDNs/URLs, DB server + schema, Elasticsearch URL, app pool account, certificate subject,
 # Identity client IDs, Dynatrace package/tags.
+# Overrides ansible_user from windows.yml (child group wins over parent).
+# Orchestrator needs an account with SQL Server access: the MSI install and
+# external_validation connect to the DB with Windows auth (Integrated Security),
+# i.e. as THIS user. The default account in windows.yml has no DB rights -> install fails.
+ansible_user: sa_rpa_sandbox
+ansible_password: "{{ lookup('env','UIPATH_SA_RPA_PASSWORD_SANDBOX') }}"
+
 dynatrace_packages:
   - Dynatrace-OneAgent-Windows-1.305.109_TST
 
