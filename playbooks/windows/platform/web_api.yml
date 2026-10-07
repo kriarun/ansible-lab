@@ -1,0 +1,32 @@
+# playbooks/windows/platform/web_api.yml
+
+- name: Windows Web API Migration
+  hosts: web_api
+  gather_facts: false
+
+  pre_tasks:
+    - name: Load web api machine blueprint
+      include_vars:
+        file: "../../../profiles/windows/machines/web_api.yml"
+
+    - name: Compute final roles
+      set_fact:
+        final_roles: >-
+          {{
+            (machine_roles | default([]))
+            | unique
+            | difference(remove_roles | default([]))
+          }}
+
+    - name: Debug composition
+      debug:
+        msg:
+          host: "{{ inventory_hostname }}"
+          machine_roles: "{{ machine_roles | default([]) }}"
+          final_roles: "{{ final_roles }}"
+
+  tasks:
+    - name: Execute final roles
+      include_role:
+        name: "windows/{{ item }}"
+      loop: "{{ final_roles }}"
