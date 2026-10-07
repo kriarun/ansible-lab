@@ -8,3 +8,14 @@ git_2_44_0:
     arguments: "/VERYSILENT"
     check:
       path_exists: "C:\\Program Files\\Git\\bin\\git.exe"
+
+git-2.48.1:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "Git-2.48.1-64-bit.exe"
+  install:
+    type: exe
+    arguments: "/VERYSILENT"
+    check:
+      path_exists: "C:\\Program Files\\Git\\bin\\git.exe"

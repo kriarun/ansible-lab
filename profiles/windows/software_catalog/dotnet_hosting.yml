@@ -18,7 +18,19 @@ dotnet-hosting-8.0.13-win:
     type: exe
     arguments: "/quiet /norestart"
     check:
-      path_exists: "C:\\Program Files\\dotnet\\dotnet.exe"
+      # version-specific folder, so 8.0.13 and 10.0.1 don't skip each other
+      path_exists: "C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App\\8.0.13"
+
+dotnet-hosting-10.0.1-win:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "dotnet-hosting-10.0.1-win.exe"
+  install:
+    type: exe
+    arguments: "/quiet /norestart"
+    check:
+      path_exists: "C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App\\10.0.1"
 
 dotnet_hosting_bundle:
   source:

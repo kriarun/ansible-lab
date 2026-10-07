@@ -2,6 +2,5 @@
   ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
   vars:
     software_catalog_entry: git.yml
-    software_package_list:
-      - git_2_44_0
+    software_package_list: "{{ git_packages }}"
     software_role_name: git

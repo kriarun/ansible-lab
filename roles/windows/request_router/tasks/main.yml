@@ -1,0 +1,7 @@
+---
+- name: Install IIS Application Request Routing packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: request_router.yml
+    software_package_list: "{{ request_router_packages | default([]) }}"
+    software_role_name: request_router

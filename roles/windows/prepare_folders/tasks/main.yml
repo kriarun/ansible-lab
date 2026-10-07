@@ -1,0 +1,8 @@
+---
+# Creates base_folders (all Windows machines, role defaults)
+# plus machine_folders (per machine type, set in profiles/windows/machines/<machine>.yml).
+- name: Create base and machine folders
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: directory
+  loop: "{{ ((base_folders | default([])) + (machine_folders | default([]))) | unique }}"

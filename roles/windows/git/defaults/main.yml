@@ -1,0 +1,5 @@
+---
+# Default keeps existing users (uipath_test_manager, toolbox) on 2.44.0.
+# Override per machine in profiles/windows/machines/<machine>.yml.
+git_packages:
+  - git_2_44_0

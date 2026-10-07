@@ -1,0 +1,5 @@
+---
+# Folders every Windows machine gets.
+# Reuses installer_cache_dir from inventories/<env>/group_vars/windows.yml (single source of truth).
+base_folders:
+  - "{{ installer_cache_dir }}"

@@ -1,7 +1,3 @@
-# current - no names, hard to read in CI output
-- include_tasks: stop_iis.yml
-
-# fix
 - name: Stop IIS
   include_tasks: stop_iis.yml
 

@@ -1,3 +1,42 @@
-# inventories/sandbox/group_vars/web_api.yml
-web_api_migration_encrypt_password: "{{ lookup('env', 'WEB_API_MIGRATION_ENCRYPT_PASSWORD') }}"
-web_api_certificate_pfx_password: "{{ lookup('env', 'WEB_API_CERTIFICATE_PFX_PASSWORD') }}"
+dynatrace_install_arguments:
+  host_group: "web_api_dev"
+  al_number: "AL-Number=1234"
+  application: "RPA_DEV"
+  custom_hostname: "Custom-Hostname=webapi-Dev"
+  hostname: "Hostname=XXXX"
+  stage: "Stage=dev"
+  montoring_mode: "infra-only"
+  log_content_access_enabled: true
+  log_access_enabled: true  
+  host_tags_group: "YYYYY"
+  host_tags_environment: "environment=dev"
+  host_tags_monitoring_os: "log_monitoring=windows"
+  host_tags_monitoring_service: "log_monitoring=web_api_dev"
+
+ssl_certificate:
+  subject: 'CN=cn OU = ou O = Bank AG L = Location S = Location C = CH'
+  thumbprint: ''
+  store_location: LocalMachine
+  store_name: My
+  pfx_path: 'C:\sources\web_api_migration\Certs.pfx'
+  pfx_password: "{{ _vault_secret.certificate }}"
+
+dynatrace_packages:
+  - Dynatrace-OneAgent-Windows-1.305.109_TST
+
+vault_secret_path: "3111-ansible/dev/web-api"
+
+base_url: "https://web-api.ch"
+
+scheduled_tasks:
+  - name: "warmup api1"
+    url: "{{base_url}}/web-api1/swagger/index.html"
+    start_time: "2024-01-01T04:00:00"
+    interval: PT15M
+    duration: PT12H
+
+  - name: "warmup api2"
+    url: "{{base_url}}/web-api2/swagger/index.html"
+    start_time: "2024-01-01T04:02:00"
+    interval: PT15M
+    duration: PT12H

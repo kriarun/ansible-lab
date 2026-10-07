@@ -1,7 +1,30 @@
 # restore_applications.yml
+# Restores the full IIS webServer (sites, app pools, config) from the msdeploy package.
+# The marker makes it run once: a re-run must never overwrite a live server.
+- name: Check if IIS already restored
+  ansible.windows.win_stat:
+    path: "{{ web_api_migration_backup_dir }}\\iis_restored.marker"
+  register: iis_restored_marker
+
 - name: Restore IIS from full webserver backup
   ansible.windows.win_shell: |
-    msdeploy.exe -verb:sync `
-      -source:package="{{ web_api_migration_backup_dir }}\back.zip";encryptPassword="{{ web_api_migration_encrypt_password }}" `
-      -dest:webServer `
+    $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+    $package  = "{{ web_api_migration_backup_dir }}\IIS_Backup.zip"
+    & $msdeploy `
+      -verb:sync `
+      "-source:package='$package',encryptPassword='{{ _vault_secret.iis_backup }}'" `
+      "-dest:webServer" `
       -allowUntrusted
+    # win_shell does not fail on a native exe's exit code - fail explicitly,
+    # otherwise the marker below would record a broken restore as complete.
+    if ($LASTEXITCODE -ne 0) {
+      throw "msdeploy restore of $package failed with exit code $LASTEXITCODE"
+    }
+  when: not iis_restored_marker.stat.exists
+  no_log: true   # command line contains the package encryption password
+
+- name: Create IIS restored marker
+  ansible.windows.win_file:
+    path: "{{ web_api_migration_backup_dir }}\\iis_restored.marker"
+    state: touch
+  when: not iis_restored_marker.stat.exists
