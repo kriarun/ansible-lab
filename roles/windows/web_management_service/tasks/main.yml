@@ -1,14 +1,11 @@
 ---
 # Enables remote Web Deploy through the IIS Web Management Service (WMSvc).
-# Runs after certificate and BEFORE microsoft_web_deploy (microsoft-web-deploy-v3-wmsvc):
+# Runs BEFORE microsoft_web_deploy (microsoft-web-deploy-v3-wmsvc):
 # Web Deploy registers its WMSvc handler only if WMSvc already exists.
 # Deploy account: local admin, Windows credentials - no IIS delegation rules needed.
 
 - name: Enable IIS features for Web Management Service
   ansible.builtin.include_tasks: enable_iis_features.yml
-
-- name: Fetch thumbprint of the certificate imported by the certificate role
-  ansible.builtin.include_tasks: fetch_thumbprint.yml
 
 - name: Check Web Management Service is installed
   ansible.windows.win_service_info:
@@ -36,13 +33,19 @@
 
 # Replaces the self-signed WMSvc-SHA2-<machine> certificate Windows binds by default,
 # so the pipeline no longer needs -allowUntrusted.
-- name: Bind certificate to port 8172
+# Like-for-like with the existing machine: WMSvc uses the self-signed WMSvc-SHA2-<machine>
+# certificate that Windows creates with Web-Mgmt-Service (GitLab deploys with -allowUntrusted).
+# This also repairs a server where another certificate was bound to 8172.
+- name: Bind WMSvc-SHA2 self-signed certificate to port 8172
   ansible.windows.win_shell: |
-    $thumb = "{{ ssl_certificate.thumbprint }}".Replace(' ', '').ToUpper()
-    $port  = 8172
-    if (-not (Test-Path "Cert:\LocalMachine\My\$thumb")) {
-      throw "Certificate $thumb not found in LocalMachine\My - run the certificate role first"
+    $port = 8172
+    $cert = Get-ChildItem Cert:\LocalMachine\My |
+            Where-Object { $_.Subject -like 'CN=WMSvc-SHA2-*' -and $_.NotAfter -gt (Get-Date) } |
+            Sort-Object NotAfter | Select-Object -Last 1
+    if (-not $cert) {
+      throw "No valid WMSvc-SHA2 certificate in LocalMachine\My - is Web-Mgmt-Service installed?"
     }
+    $thumb = $cert.Thumbprint.ToUpper()
     $current = (netsh http show sslcert ipport=0.0.0.0:$port) -join "`n"
     if ($current -match $thumb) { Write-Output "unchanged"; exit 0 }
 

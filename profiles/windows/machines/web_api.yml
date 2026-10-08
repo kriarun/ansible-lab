@@ -3,11 +3,11 @@ machine_roles:
   - hashicorp
   - git
   - dynatrace
+  - certificate
   - iis
   - iis_url_rewrite
   - dotnet_hosting
-  - certificate
-  - web_management_service   # after certificate (binds it to 8172), installs Web-Mgmt-Service
+  - web_management_service   # installs Web-Mgmt-Service, binds its WMSvc-SHA2 cert (like-for-like)
   - microsoft_web_deploy     # after web_management_service: WMSvc must exist for the handler
   - request_router
   - web_api_migration
