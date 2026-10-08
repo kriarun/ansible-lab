@@ -32,12 +32,12 @@
     label: "{{ item.name }}"
 
 # Certificate (like-for-like with the existing machine: self-signed, GitLab deploys with -allowUntrusted).
-# Installing Web-Mgmt-Service creates the WMSvc-SHA2-<machine> certificate but does NOT tell WMSvc
-# to use it - without SslCertificateHash in the registry WMSvc fails to start.
-# Only the registry is written: WMSvc creates its own 8172 binding at startup (the restart below).
-# Creating the binding ourselves as well made WMSvc fail on dev, so a binding to a different
-# certificate is removed and WMSvc recreates it.
-- name: Point WMSvc at the WMSvc-SHA2 self-signed certificate
+# Installing Web-Mgmt-Service creates the WMSvc-SHA2-<machine> certificate but does NOT connect it:
+# no SslCertificateHash in the registry and no 8172 binding -> WMSvc fails to start.
+# This does what IIS Manager does (verified on the sandbox): registry hash + 8172 binding with
+# WMSvc's own application id {d7d72267-...}. A binding with another app id (e.g. all zeros)
+# makes WMSvc fail to start.
+- name: Connect WMSvc to the WMSvc-SHA2 self-signed certificate (registry + 8172 binding)
   ansible.windows.win_shell: |
     $regPath = 'HKLM:\SOFTWARE\Microsoft\WebManagement\Server'
     $cert = Get-ChildItem Cert:\LocalMachine\My |
@@ -54,9 +54,14 @@
       $changed = $true
     }
 
+    # WMSvc application id - as written by IIS Manager
+    $appId   = '{d7d72267-fcf9-4424-9eec-7e1d8dcec9a9}'
     $binding = (netsh http show sslcert ipport=0.0.0.0:8172) -join "`n"
-    if ($binding -match 'Certificate Hash' -and $binding -notmatch $cert.Thumbprint) {
-      netsh http delete sslcert ipport=0.0.0.0:8172 | Out-Null
+    $correct = ($binding -match $cert.Thumbprint) -and ($binding -match [regex]::Escape($appId))
+    if (-not $correct) {
+      if ($binding -match 'Certificate Hash') { netsh http delete sslcert ipport=0.0.0.0:8172 | Out-Null }
+      netsh http add sslcert ipport=0.0.0.0:8172 certhash=$($cert.Thumbprint) appid=$appId certstorename=MY
+      if ($LASTEXITCODE -ne 0) { throw "netsh failed to bind $($cert.Thumbprint) to port 8172" }
       $changed = $true
     }
 
