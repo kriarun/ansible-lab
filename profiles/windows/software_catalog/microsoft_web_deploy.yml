@@ -30,7 +30,7 @@ microsoft-web-deploy-v3-wmsvc:
     filename: "WebDeploy_amd64_en-US.msi"
   install:
     type: msi
-    arguments: "/qn ADDLOCAL=MSDeployFeature,MSDeployUIFeature,DelegationUIFeature,MSDeployWMSVCHandlerFeature"
+    arguments: "/quiet /norestart ADDLOCAL=MSDeployFeature,MSDeployUIFeature,DelegationUIFeature,MSDeployWMSVCHandlerFeature"
     check:
       # delegation dll (seen on the existing machine), not msdeploy.exe - part of the WMSvc/delegation features
       path_exists: "C:\\Program Files\\IIS\\Microsoft Web Deploy V3\\Microsoft.Web.Delegation.dll"
