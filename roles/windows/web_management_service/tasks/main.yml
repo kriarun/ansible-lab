@@ -31,10 +31,38 @@
   loop_control:
     label: "{{ item.name }}"
 
-# Certificate: nothing to do. Installing Web-Mgmt-Service creates the self-signed
-# WMSvc-SHA2-<machine> certificate and binds it to 8172 - same as the existing machine
-# (like-for-like; GitLab deploys with -allowUntrusted). Rebinding it from a script broke
-# WMSvc start on dev, so the binding is left to Windows / IIS Manager.
+# Certificate (like-for-like with the existing machine: self-signed, GitLab deploys with -allowUntrusted).
+# Installing Web-Mgmt-Service creates the WMSvc-SHA2-<machine> certificate but does NOT tell WMSvc
+# to use it - without SslCertificateHash in the registry WMSvc fails to start.
+# Only the registry is written: WMSvc creates its own 8172 binding at startup (the restart below).
+# Creating the binding ourselves as well made WMSvc fail on dev, so a binding to a different
+# certificate is removed and WMSvc recreates it.
+- name: Point WMSvc at the WMSvc-SHA2 self-signed certificate
+  ansible.windows.win_shell: |
+    $regPath = 'HKLM:\SOFTWARE\Microsoft\WebManagement\Server'
+    $cert = Get-ChildItem Cert:\LocalMachine\My |
+            Where-Object { $_.Subject -like 'CN=WMSvc-SHA2-*' -and $_.NotAfter -gt (Get-Date) } |
+            Sort-Object NotAfter | Select-Object -Last 1
+    if (-not $cert) {
+      throw "No valid WMSvc-SHA2 certificate in LocalMachine\My - is Web-Mgmt-Service installed?"
+    }
+    $changed = $false
+
+    $current = (Get-ItemProperty -Path $regPath -Name SslCertificateHash -ErrorAction SilentlyContinue).SslCertificateHash
+    if (-not $current -or ([BitConverter]::ToString($current) -ne [BitConverter]::ToString($cert.GetCertHash()))) {
+      Set-ItemProperty -Path $regPath -Name SslCertificateHash -Value $cert.GetCertHash() -Type Binary
+      $changed = $true
+    }
+
+    $binding = (netsh http show sslcert ipport=0.0.0.0:8172) -join "`n"
+    if ($binding -match 'Certificate Hash' -and $binding -notmatch $cert.Thumbprint) {
+      netsh http delete sslcert ipport=0.0.0.0:8172 | Out-Null
+      $changed = $true
+    }
+
+    if ($changed) { Write-Output "changed" } else { Write-Output "unchanged" }
+  register: _wmsvc_cert
+  changed_when: "'changed' in _wmsvc_cert.stdout"
 
 # Installing Web-Mgmt-Service creates this built-in rule (port 8172, any internal address).
 # No IP whitelisting by decision: internal network only. To restrict later, replace this
