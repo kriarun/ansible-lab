@@ -1,0 +1,81 @@
+---
+# Enables remote Web Deploy through the IIS Web Management Service (WMSvc).
+# Runs after certificate and BEFORE microsoft_web_deploy (microsoft-web-deploy-v3-wmsvc):
+# Web Deploy registers its WMSvc handler only if WMSvc already exists.
+# Deploy account: local admin, Windows credentials - no IIS delegation rules needed.
+
+- name: Enable IIS features for Web Management Service
+  ansible.builtin.include_tasks: enable_iis_features.yml
+
+- name: Fetch thumbprint of the certificate imported by the certificate role
+  ansible.builtin.include_tasks: fetch_thumbprint.yml
+
+- name: Check Web Management Service is installed
+  ansible.windows.win_service_info:
+    name: WMSvc
+  register: _wmsvc_info
+
+- name: Fail if Web Management Service is missing
+  ansible.builtin.assert:
+    that:
+      - _wmsvc_info.services | length > 0
+    fail_msg: >-
+      WMSvc not found even after enabling the Web-Mgmt-Service feature.
+
+- name: Allow remote connections and require Windows credentials
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\WebManagement\Server
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: dword
+  loop:
+    - { name: EnableRemoteManagement, data: 1 }
+    - { name: RequiresWindowsCredentials, data: 1 }
+  loop_control:
+    label: "{{ item.name }}"
+
+# Replaces the self-signed WMSvc-SHA2-<machine> certificate Windows binds by default,
+# so the pipeline no longer needs -allowUntrusted.
+- name: Bind certificate to port 8172
+  ansible.windows.win_shell: |
+    $thumb = "{{ ssl_certificate.thumbprint }}".Replace(' ', '').ToUpper()
+    $port  = 8172
+    if (-not (Test-Path "Cert:\LocalMachine\My\$thumb")) {
+      throw "Certificate $thumb not found in LocalMachine\My - run the certificate role first"
+    }
+    $current = (netsh http show sslcert ipport=0.0.0.0:$port) -join "`n"
+    if ($current -match $thumb) { Write-Output "unchanged"; exit 0 }
+
+    # Same app id Windows uses for its own WMSvc binding (checked on the existing machine)
+    $appId = '{00000000-0000-0000-0000-000000000000}'
+    netsh http delete sslcert ipport=0.0.0.0:$port | Out-Null
+    netsh http add sslcert ipport=0.0.0.0:$port certhash=$thumb appid=$appId certstorename=MY
+    if ($LASTEXITCODE -ne 0) { throw "netsh failed to bind $thumb to port $port" }
+
+    # WMSvc also reads the hash from the registry at startup
+    $bytes = for ($i = 0; $i -lt $thumb.Length; $i += 2) { [Convert]::ToByte($thumb.Substring($i, 2), 16) }
+    Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\WebManagement\Server' `
+      -Name SslCertificateHash -Value ([byte[]]$bytes) -Type Binary
+    Write-Output "changed"
+  register: _wmsvc_cert
+  changed_when: "'changed' in _wmsvc_cert.stdout"
+
+# Installing Web-Mgmt-Service creates this built-in rule (port 8172, any internal address).
+# No IP whitelisting by decision: internal network only. To restrict later, replace this
+# with a win_firewall_rule limited to the GitLab runner IPs.
+- name: Ensure built-in WMSvc firewall rule is enabled
+  ansible.windows.win_shell: |
+    $rules = Get-NetFirewallRule -DisplayName 'Web Management Service (HTTP Traffic-In)' -ErrorAction SilentlyContinue
+    if (-not $rules) { throw "Built-in WMSvc firewall rule not found - is Web-Mgmt-Service installed?" }
+    $disabled = $rules | Where-Object Enabled -eq 'False'
+    if ($disabled) { $disabled | Enable-NetFirewallRule; Write-Output "changed" } else { Write-Output "unchanged" }
+  register: _wmsvc_builtin_rule
+  changed_when: "'changed' in _wmsvc_builtin_rule.stdout"
+
+- name: Restart Web Management Service (sets start mode to automatic)
+  ansible.builtin.include_tasks: restart_wmsvc.yml
+
+- name: Verify WMSvc is listening on port 8172
+  ansible.windows.win_wait_for:
+    port: 8172
+    timeout: 60

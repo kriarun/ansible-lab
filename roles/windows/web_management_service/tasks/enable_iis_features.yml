@@ -1,0 +1,10 @@
+---
+# Same pattern as roles/windows/uipath_orchestrator_migration/tasks/enable_iis_features.yml.
+# Web-Mgmt-Service must exist BEFORE Web Deploy is installed, otherwise the msdeploy handler
+# is not registered - that's why this role runs before microsoft_web_deploy in the profile.
+- name: Enable required IIS features
+  ansible.windows.win_feature:
+    name:
+      - Web-Mgmt-Service
+    state: present
+    include_management_tools: yes

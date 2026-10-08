@@ -6,13 +6,12 @@ machine_roles:
   - iis
   - iis_url_rewrite
   - dotnet_hosting
-  - microsoft_web_deploy
-  - request_router
   - certificate
+  - web_management_service   # after certificate (binds it to 8172), installs Web-Mgmt-Service
+  - microsoft_web_deploy     # after web_management_service: WMSvc must exist for the handler
+  - request_router
   - web_api_migration
   - scheduled_tasks
-
-
 
 git_packages:
   - git-2.48.1
@@ -25,7 +24,7 @@ dotnet_hosting_packages:
   - dotnet-hosting-10.0.1-win
 
 microsoft_web_deploy_packages:
-  - microsoft-web-deploy-v3
+  - microsoft-web-deploy-v3-wmsvc
 
 request_router_packages:
   - request_router_amd64
