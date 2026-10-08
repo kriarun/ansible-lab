@@ -1,0 +1,6 @@
+# Sandbox: test web_management_service without Vault or the real certificate.
+# Uses the self-signed WMSvc-SHA2-<machine> cert that Windows creates when Web-Mgmt-Service is installed.
+ssl_certificate:
+  subject: 'CN=WMSvc-SHA2'
+  store_location: LocalMachine
+  store_name: My
