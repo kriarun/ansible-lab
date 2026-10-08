@@ -31,37 +31,10 @@
   loop_control:
     label: "{{ item.name }}"
 
-# Replaces the self-signed WMSvc-SHA2-<machine> certificate Windows binds by default,
-# so the pipeline no longer needs -allowUntrusted.
-# Like-for-like with the existing machine: WMSvc uses the self-signed WMSvc-SHA2-<machine>
-# certificate that Windows creates with Web-Mgmt-Service (GitLab deploys with -allowUntrusted).
-# This also repairs a server where another certificate was bound to 8172.
-- name: Bind WMSvc-SHA2 self-signed certificate to port 8172
-  ansible.windows.win_shell: |
-    $port = 8172
-    $cert = Get-ChildItem Cert:\LocalMachine\My |
-            Where-Object { $_.Subject -like 'CN=WMSvc-SHA2-*' -and $_.NotAfter -gt (Get-Date) } |
-            Sort-Object NotAfter | Select-Object -Last 1
-    if (-not $cert) {
-      throw "No valid WMSvc-SHA2 certificate in LocalMachine\My - is Web-Mgmt-Service installed?"
-    }
-    $thumb = $cert.Thumbprint.ToUpper()
-    $current = (netsh http show sslcert ipport=0.0.0.0:$port) -join "`n"
-    if ($current -match $thumb) { Write-Output "unchanged"; exit 0 }
-
-    # Same app id Windows uses for its own WMSvc binding (checked on the existing machine)
-    $appId = '{00000000-0000-0000-0000-000000000000}'
-    netsh http delete sslcert ipport=0.0.0.0:$port | Out-Null
-    netsh http add sslcert ipport=0.0.0.0:$port certhash=$thumb appid=$appId certstorename=MY
-    if ($LASTEXITCODE -ne 0) { throw "netsh failed to bind $thumb to port $port" }
-
-    # WMSvc also reads the hash from the registry at startup
-    $bytes = for ($i = 0; $i -lt $thumb.Length; $i += 2) { [Convert]::ToByte($thumb.Substring($i, 2), 16) }
-    Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\WebManagement\Server' `
-      -Name SslCertificateHash -Value ([byte[]]$bytes) -Type Binary
-    Write-Output "changed"
-  register: _wmsvc_cert
-  changed_when: "'changed' in _wmsvc_cert.stdout"
+# Certificate: nothing to do. Installing Web-Mgmt-Service creates the self-signed
+# WMSvc-SHA2-<machine> certificate and binds it to 8172 - same as the existing machine
+# (like-for-like; GitLab deploys with -allowUntrusted). Rebinding it from a script broke
+# WMSvc start on dev, so the binding is left to Windows / IIS Manager.
 
 # Installing Web-Mgmt-Service creates this built-in rule (port 8172, any internal address).
 # No IP whitelisting by decision: internal network only. To restrict later, replace this
