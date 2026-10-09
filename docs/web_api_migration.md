@@ -24,7 +24,7 @@ flowchart LR
     subgraph New["New server (2025)"]
         N["Same IIS sites & app pools<br/>same env variables<br/>same certificate"]
     end
-    B[("Backup files<br/>IIS_Backup.zip · env_variables.reg<br/>server_roles.csv · Certs.pfx")]
+    B[("Backup files<br/>IIS_Backup.zip · env_variables.reg<br/>server_roles.csv · Certs_&lt;hostname&gt;.pfx")]
     V["HashiCorp Vault<br/>(passwords)"]
 
     O -- "export (manual, once)" --> B
@@ -45,11 +45,11 @@ Restoring over a live server would overwrite it, so the restore is guarded by a 
 
 ### 2.2 Web Management Service (WMSvc) — how GitLab deploys
 
-GitLab deploys the applications **remotely**: Web Deploy (msdeploy) connects to the **Web Management Service on port 8172** of the server, signed in as the CI/CD account `sa_ci_cd`.
+GitLab deploys the applications **remotely**: Web Deploy (msdeploy) connects to the **Web Management Service on port 8172** of the server, signed in as the **CI/CD deploy account**. The account is set per environment in `web_management_service_deploy_accounts` in `inventories/<env>/group_vars/web_api.yml` (e.g. `MAIN\sa_ci_cd`).
 
-The role `web_management_service` sets this up — feature, certificate, remote access, firewall, and `sa_ci_cd` in the local Administrators group. It runs **before** Web Deploy is installed, because Web Deploy only hooks into WMSvc if WMSvc already exists.
+The role `web_management_service` sets this up — feature, certificate, remote access, firewall, and the deploy account in the local Administrators group. It runs **before** Web Deploy is installed, because Web Deploy only hooks into WMSvc if WMSvc already exists.
 
-**Like-for-like:** same as the old server — self-signed `WMSvc-SHA2` certificate, built-in firewall rule (port 8172, internal network), `sa_ci_cd` as local administrator. Nothing changes for the pipelines.
+**Like-for-like:** same as the old server — self-signed `WMSvc-SHA2` certificate, built-in firewall rule (port 8172, internal network), deploy account as local administrator. Nothing changes for the pipelines.
 
 ### 2.3 Warmup scheduled tasks — no more ps1
 
@@ -77,7 +77,7 @@ sequenceDiagram
     You->>New: Copy backup files to C:\sources\web_api_migration
     You->>Ans: Run pipeline (lab → dev → tst → prd)
     Ans->>Vault: Fetch secrets
-    Ans->>New: Install platform from JFrog (certificate, IIS, .NET, WMSvc + sa_ci_cd, Web Deploy, ARR)
+    Ans->>New: Install platform from JFrog (certificate, IIS, .NET, WMSvc + deploy account, Web Deploy, ARR)
     Ans->>New: Restore features, env variables, IIS (once)
     Ans->>New: Create warmup scheduled tasks
 ```
@@ -92,7 +92,7 @@ Run on the **old machine** before migration. Store all files in `backup_<hostnam
 1. Run `certlm.msc` (Local Computer store — **not** `certmgr.msc`, which opens the Current User store)
 2. Personal → Certificates → right-click the Web API certificate → All Tasks → Export
 3. "Yes, export the private key", set a strong password
-4. Save as **`Certs.pfx`**
+4. Save as **`Certs_<hostname>.pfx`** (e.g. `Certs_machineA.pfx`) — the name differs per environment and must match `ssl_certificate.pfx_path` in `inventories/<env>/group_vars/web_api.yml`
 5. **Store the password in HashiCorp Vault (`certificate`) — nowhere else**
 
 ### 4.2 Environment variables
@@ -147,7 +147,7 @@ scheduled_tasks:
 ### 4.6 Collect the files
 ```
 backup_<hostname>_<date>\
-  ├── Certs.pfx
+  ├── Certs_<hostname>.pfx
   ├── env_variables.reg
   ├── server_roles.csv
   └── IIS_Backup.zip
@@ -163,7 +163,7 @@ backup_<hostname>_<date>\
 | Windows Update | Reboot once after first boot and let Windows Update finish. If an install still fails with *"another program is being installed"* (1618), just re-run — finished roles are skipped | ☐ |
 | SSH | `ssh username@hostname` works | ☐ |
 | Inventory | Host listed under `web_api` in `inventories/<env>/hosts.yml` | ☐ |
-| group_vars | `inventories/<env>/group_vars/web_api.yml`: certificate subject, Dynatrace, `vault_secret_path`, `base_url`, `scheduled_tasks`, `web_management_service_deploy_accounts` (`MAIN\sa_ci_cd`) | ☐ |
+| group_vars | `inventories/<env>/group_vars/web_api.yml`: certificate subject, Dynatrace, `vault_secret_path`, `base_url`, `scheduled_tasks`, `ssl_certificate.pfx_path` (`Certs_<hostname>.pfx`), `web_management_service_deploy_accounts` (deploy account) | ☐ |
 | Vault | `certificate` and `iis_backup` exist at `vault_secret_path` | ☐ |
 | Backup files | The 4 files in `C:\sources\web_api_migration\` | ☐ |
 
@@ -186,11 +186,11 @@ Playbook `playbooks/windows/platform/web_api.yml` loads the machine profile `pro
 | 2 | `hashicorp` | Fetches secrets from Vault (`certificate`, `iis_backup`) |
 | 3 | `git` | Git 2.48.1 |
 | 4 | `dynatrace` | Dynatrace OneAgent with the environment's host properties |
-| 5 | `certificate` | Imports `Certs.pfx` into LocalMachine\My |
+| 5 | `certificate` | Imports `Certs_<hostname>.pfx` (`ssl_certificate.pfx_path`) into LocalMachine\My |
 | 6 | `iis` | Ensures IIS is installed and running |
 | 7 | `iis_url_rewrite` | URL Rewrite module |
 | 8 | `dotnet_hosting` | .NET hosting bundles 8.0.13 and 10.0.1 |
-| 9 | `web_management_service` | WMSvc: feature, certificate, remote access, `sa_ci_cd` as local admin, firewall, restart — see [§7](#7-inside-web_management_service) |
+| 9 | `web_management_service` | WMSvc: feature, certificate, remote access, deploy account as local admin, firewall, restart — see [§7](#7-inside-web_management_service) |
 | 10 | `microsoft_web_deploy` | Web Deploy **with the WMSvc handler** (`microsoft-web-deploy-v3-wmsvc`) |
 | 11 | `request_router` | Application Request Routing (ARR) |
 | 12 | `web_api_migration` | Restores features, env variables and IIS — see [§8](#8-inside-web_api_migration) |
@@ -207,7 +207,7 @@ Software installs go through the software catalog (`profiles/windows/software_ca
 | 1 | Enable the `Web-Mgmt-Service` feature | Creates WMSvc and the `WMSvc-SHA2` certificate |
 | 2 | Check WMSvc exists | Fail early with a clear message |
 | 3 | Registry: `EnableRemoteManagement=1`, `RequiresWindowsCredentials=1` | Remote deploys with a Windows (local admin) account |
-| 4 | Add `web_management_service_deploy_accounts` (`MAIN\sa_ci_cd`) to local **Administrators** | GitLab signs in as `sa_ci_cd`; without admin rights every deploy is *access denied* |
+| 4 | Add the deploy account(s) from `web_management_service_deploy_accounts` to local **Administrators** | GitLab signs in with this account; without admin rights every deploy is *access denied* |
 | 5 | Connect the certificate: `SslCertificateHash` + 8172 binding (app id `{d7d72267-…}`) | Windows creates the certificate but doesn't connect it — without this WMSvc won't start. Changes only what's wrong; a second run reports *unchanged* |
 | 6 | Enable the built-in firewall rule "Web Management Service (HTTP Traffic-In)" | Like the old server: port 8172, any internal address |
 | 7 | Restart WMSvc (stop + start, automatic) | WMSvc reads its settings only at startup |

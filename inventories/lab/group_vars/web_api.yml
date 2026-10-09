@@ -18,7 +18,7 @@ ssl_certificate:
   thumbprint: ''
   store_location: LocalMachine
   store_name: My
-  pfx_path: 'C:\sources\web_api_migration\Certs.pfx'
+  pfx_path: 'C:\sources\web_api_migration\Certs_win_web_api_01.pfx'
   pfx_password: "{{ _vault_secret.certificate }}"
 
 dynatrace_packages:
