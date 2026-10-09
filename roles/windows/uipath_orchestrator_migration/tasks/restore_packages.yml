@@ -1,0 +1,46 @@
+---
+# Restores Orchestrator packages (libraries + processes) whose files were lost with the OS wipe (STORAGE_TYPE=FileSystem).
+# The database still lists the packages; without the files, new robots cannot download them.
+#
+# Whatever is in the backup gets restored. The backup (manual, checklist step 4b) contains only:
+#   Orchestrator-Host\Libraries      host library feed
+#   Orchestrator-<uuid>\Processes    process packages, one folder per tenant
+# The <uuid> is the tenant key from the database; same DB -> same folder name, so it is never typed here.
+#
+# Runs only if the backup folder exists AND Orchestrator is installed at the configured path
+# (guards against creating folders under a wrong path); otherwise warns and skips.
+
+- name: Restore packages | check backup folder
+  ansible.windows.win_stat:
+    path: "{{ uipath_packages_backup_path }}"
+  register: _packages_backup
+
+- name: Restore packages | check Orchestrator is installed at the configured path
+  ansible.windows.win_stat:
+    path: "{{ uipath_orchestrator_installed_path }}\\UiPath.Orchestrator.exe"
+  register: _orchestrator_exe
+
+- name: Restore packages | decide
+  ansible.builtin.set_fact:
+    _restore_packages: >-
+      {{ (_packages_backup.stat.exists and _packages_backup.stat.isdir)
+         and _orchestrator_exe.stat.exists }}
+
+- name: Restore packages | WARNING - skipping
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: Orchestrator packages NOT restored.
+      Backup {{ uipath_packages_backup_path }} present: {{ _packages_backup.stat.exists }},
+      Orchestrator found at {{ uipath_orchestrator_installed_path }}: {{ _orchestrator_exe.stat.exists }}.
+      Orchestrator runs, but new robots cannot download libraries / processes until the backup is
+      copied to {{ uipath_storage_path }} (see migration doc, step 13).
+  when: not (_restore_packages | bool)
+
+# No /MIR (never delete) and no /SEC (files inherit the folder permissions).
+# robocopy skips files with the same size and timestamp, so re-runs copy nothing.
+- name: Restore packages | robocopy
+  community.windows.win_robocopy:
+    src: "{{ uipath_packages_backup_path }}"
+    dest: "{{ uipath_storage_path }}"
+    flags: /E /R:2 /W:5 /NP /NFL /NDL
+  when: _restore_packages | bool

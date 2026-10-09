@@ -1,6 +1,7 @@
-# Host library feed restore (restore_host_libraries.yml). Source is copied to the machine manually (doc step 8).
-uipath_host_libraries_source: 'C:\sources\uipath_migration\Storage\Orchestrator-Host\Libraries'
-uipath_host_libraries_dest: "{{ uipath_orchestrator_installed_path }}\\Storage\\Orchestrator-Host\\Libraries"
+# Package restore (restore_packages.yml). Backup is copied to the machine manually (doc step 8)
+# and contains only Orchestrator-Host\Libraries + Orchestrator-<uuid>\Processes per tenant.
+uipath_packages_backup_path: 'C:\sources\uipath_migration\Storage'
+uipath_storage_path: "{{ uipath_orchestrator_installed_path }}\\Storage"
 
 uipath_dll_config_path: "{{ uipath_orchestrator_installed_path }}\\UiPath.Orchestrator.dll.config"
 

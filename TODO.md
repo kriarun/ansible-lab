@@ -59,10 +59,9 @@ Priority: **P1** = before any non-lab run · **P2** = before prd / audit · **P3
 
 ## UiPath Storage (package files)
 
-- [x] **Storage scope decided (2026-10-05):** only `Orchestrator-Host\Libraries` (~3 GB) + `Orchestrator-<uuid>\Processes` (~360 MB). Not needed: SystemBuckets (videos), ExecutionMedia, Media, Retention, JobPersistence (→ no suspended jobs at cutover).
-- [x] **Host libraries restore automated (2026-10-05):** `restore_host_libraries.yml` after `install_orchestrator`; skips with warning if `uipath_host_libraries_source` is missing.
-- [ ] **P2 — Test `restore_host_libraries` in lab** — check that a library downloads from the UI afterwards (confirms inherited permissions are enough).
-- [ ] **P3 — Processes: backup only** — restore manually / republish if a robot needs an old version.
+- [x] **Storage scope decided (2026-10-05):** `Orchestrator-Host\Libraries` (~3 GB) + `Orchestrator-<uuid>\Processes` (~360 MB) for **every tenant** (2 in lab/dev/tst, 1 in prd) — Processes found to be required on 2026-10-09. Not needed: SystemBuckets (videos), ExecutionMedia, Media, Retention, JobPersistence (→ no suspended jobs at cutover).
+- [x] **Package restore automated (2026-10-09):** `restore_packages.yml` after `install_orchestrator` copies the backup (host Libraries + each tenant's Processes) into `Orchestrator\Storage`; skips with warning if the backup is missing or Orchestrator is not found at the configured path.
+- [ ] **P2 — Test `restore_packages` in lab** — download a library and a process (both tenants) from the UI afterwards (confirms inherited permissions are enough).
 - [ ] **P3 — Long-term: move `STORAGE_LOCATION` off C:** (data disk or share) so an OS rebuild never loses package files.
 
 ---
