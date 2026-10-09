@@ -31,6 +31,23 @@
   loop_control:
     label: "{{ item.name }}"
 
+# GitLab deploys through WMSvc with Windows credentials (sa_ci_cd). Without delegation rules only
+# local administrators may deploy - same as the old server. Without this, every deploy is "access denied".
+- name: Validate deploy accounts are configured
+  ansible.builtin.assert:
+    that:
+      - web_management_service_deploy_accounts is defined
+      - web_management_service_deploy_accounts | length > 0
+    fail_msg: >-
+      Set web_management_service_deploy_accounts (e.g. 'MAIN\sa_ci_cd') in
+      inventories/<env>/group_vars/web_api.yml - GitLab deploys fail without it.
+
+- name: Add deploy accounts to the local Administrators group
+  ansible.windows.win_group_membership:
+    name: Administrators
+    members: "{{ web_management_service_deploy_accounts }}"
+    state: present
+
 # Certificate (like-for-like with the existing machine: self-signed, GitLab deploys with -allowUntrusted).
 # Installing Web-Mgmt-Service creates the WMSvc-SHA2-<machine> certificate but does NOT connect it:
 # no SslCertificateHash in the registry and no 8172 binding -> WMSvc fails to start.

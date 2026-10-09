@@ -40,3 +40,7 @@ scheduled_tasks:
     start_time: "2024-01-01T04:02:00"
     interval: PT15M
     duration: PT12H
+
+# GitLab CI/CD account, added to local Administrators so it can deploy via WMSvc (port 8172)
+web_management_service_deploy_accounts:
+  - 'MAIN\sa_ci_cd'
