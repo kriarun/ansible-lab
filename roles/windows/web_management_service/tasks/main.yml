@@ -1,9 +1,4 @@
 ---
-# Enables remote Web Deploy through the IIS Web Management Service (WMSvc).
-# Runs BEFORE microsoft_web_deploy (microsoft-web-deploy-v3-wmsvc):
-# Web Deploy registers its WMSvc handler only if WMSvc already exists.
-# Deploy account: local admin, Windows credentials - no IIS delegation rules needed.
-
 - name: Enable IIS features for Web Management Service
   ansible.builtin.include_tasks: enable_iis_features.yml
 
@@ -31,8 +26,7 @@
   loop_control:
     label: "{{ item.name }}"
 
-# GitLab deploys through WMSvc with Windows credentials (sa_ci_cd). Without delegation rules only
-# local administrators may deploy - same as the old server. Without this, every deploy is "access denied".
+# GitLab deploys as this account; without local admin rights every deploy is "access denied".
 - name: Validate deploy accounts are configured
   ansible.builtin.assert:
     that:
@@ -48,12 +42,7 @@
     members: "{{ web_management_service_deploy_accounts }}"
     state: present
 
-# Certificate (like-for-like with the existing machine: self-signed, GitLab deploys with -allowUntrusted).
-# Installing Web-Mgmt-Service creates the WMSvc-SHA2-<machine> certificate but does NOT connect it:
-# no SslCertificateHash in the registry and no 8172 binding -> WMSvc fails to start.
-# This does what IIS Manager does (verified on the sandbox): registry hash + 8172 binding with
-# WMSvc's own application id {d7d72267-...}. A binding with another app id (e.g. all zeros)
-# makes WMSvc fail to start.
+# Windows creates the WMSvc-SHA2 certificate but doesn't connect it - without this WMSvc won't start.
 - name: Connect WMSvc to the WMSvc-SHA2 self-signed certificate (registry + 8172 binding)
   ansible.windows.win_shell: |
     $regPath = 'HKLM:\SOFTWARE\Microsoft\WebManagement\Server'
@@ -71,7 +60,7 @@
       $changed = $true
     }
 
-    # WMSvc application id - as written by IIS Manager
+    # Fixed WMSvc application id - any other value (e.g. zeros) stops WMSvc from starting
     $appId   = '{d7d72267-fcf9-4424-9eec-7e1d8dcec9a9}'
     $binding = (netsh http show sslcert ipport=0.0.0.0:8172) -join "`n"
     $correct = ($binding -match $cert.Thumbprint) -and ($binding -match [regex]::Escape($appId))
@@ -86,9 +75,6 @@
   register: _wmsvc_cert
   changed_when: "'changed' in _wmsvc_cert.stdout"
 
-# Installing Web-Mgmt-Service creates this built-in rule (port 8172, any internal address).
-# No IP whitelisting by decision: internal network only. To restrict later, replace this
-# with a win_firewall_rule limited to the GitLab runner IPs.
 - name: Ensure built-in WMSvc firewall rule is enabled
   ansible.windows.win_shell: |
     $rules = Get-NetFirewallRule -DisplayName 'Web Management Service (HTTP Traffic-In)' -ErrorAction SilentlyContinue

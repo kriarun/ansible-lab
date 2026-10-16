@@ -1,6 +1,5 @@
 ---
-# Same pattern as roles/windows/uipath_orchestrator_migration/tasks/iis_restart.yml.
-# WMSvc reads its registry settings and certificate only at startup.
+# WMSvc reads its settings only at startup.
 - name: Stop Web Management Service
   ansible.windows.win_service:
     name: WMSvc
