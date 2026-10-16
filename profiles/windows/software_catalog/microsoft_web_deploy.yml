@@ -20,9 +20,7 @@ web_deploy:
     check:
       path_exists: "C:\\Program Files\\IIS\\Microsoft Web Deploy V3\\msdeploy.exe"
 
-# Web Deploy WITH the WMSvc handler (remote deploy via https://<host>:8172/msdeploy.axd).
-# Separate key so UiPath machines (microsoft-web-deploy-v3) stay unchanged.
-# Not ADDLOCAL=ALL: that also installs the Remote Agent Service (MsDepSvc), a second remote endpoint.
+# Web Deploy with the WMSvc handler - needed for remote deploys from GitLab (port 8172).
 microsoft-web-deploy-v3-wmsvc:
   source:
     type: local
@@ -32,5 +30,5 @@ microsoft-web-deploy-v3-wmsvc:
     type: msi
     arguments: "/quiet /norestart ADDLOCAL=MSDeployFeature,MSDeployUIFeature,DelegationUIFeature,MSDeployWMSVCHandlerFeature"
     check:
-      # delegation dll (seen on the existing machine), not msdeploy.exe - part of the WMSvc/delegation features
+      # Delegation dll, not msdeploy.exe - so a basic Web Deploy without the handler is not skipped
       path_exists: "C:\\Program Files\\IIS\\Microsoft Web Deploy V3\\Microsoft.Web.Delegation.dll"
