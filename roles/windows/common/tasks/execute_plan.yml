@@ -86,11 +86,22 @@
     - not _pkg_already_installed
     - pkg.install.type == "zip"
 
-- name: Install package (COPY)
-  ansible.builtin.include_tasks: install_copy.yml
+- name: Place per-user installer or extension file
+  ansible.builtin.include_tasks: place_per_user_file.yml
   when:
     - not _pkg_already_installed
-    - pkg.install.type == "copy"
+    - pkg.install.type in ["exe_per_user", "vsix_per_user"]
+
+# exe_per_user: one Active Setup entry per role; the catalog key (which contains
+# the version) is the fingerprint, so a version bump re-runs it for every user.
+# vsix_per_user: registered once for ALL extensions by the vscode_extensions role.
+- name: Install per user at logon (exe_per_user)
+  ansible.builtin.include_tasks: register_active_setup.yml
+  vars:
+    active_setup_component: "Toolbox_{{ software_role_name }}"
+    active_setup_stub_path: '"{{ pkg.install.check.path_exists }}" {{ pkg.install.arguments }}'
+    active_setup_fingerprint: "{{ pkg.software_key }}"
+  when: pkg.install.type == "exe_per_user"
 
 #TODO command line
 

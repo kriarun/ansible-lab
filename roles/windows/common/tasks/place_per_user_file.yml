@@ -1,0 +1,14 @@
+---
+# For exe_per_user and vsix_per_user: Ansible only places the artifact here.
+# The actual installation runs per user at logon (Active Setup), because these
+# installers can only install into the profile of the user who runs them.
+- name: Ensure per-user artifact folder exists
+  ansible.windows.win_file:
+    path: "{{ pkg.install.destination }}"
+    state: directory
+
+- name: Place per-user artifact
+  ansible.windows.win_copy:
+    src: "{{ pkg.installer.final_path }}"
+    dest: "{{ pkg.install.check.path_exists }}"
+    remote_src: true

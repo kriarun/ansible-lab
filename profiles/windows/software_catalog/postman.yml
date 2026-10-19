@@ -1,15 +1,11 @@
-# Postman (official Setup.exe). The installer is PER-USER only (it installs into
-# %LOCALAPPDATA%\Postman), so Ansible does not run it: it only places the file,
-# and the postman role registers it with Active Setup -> each user gets Postman
-# installed into their own profile at next logon.
-# Postman auto-updates per user after that; the pinned version is the baseline.
+# Postman (official Setup.exe, Squirrel). Per-user only installer: placed by
+# Ansible, installed into each user's profile at their next logon.
+# Postman auto-updates per user afterwards; the pinned version is the baseline.
 postman_12_22_6:
   source:
     type: jfrog
     url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/postman/12.22.6/Postman-win64-12.22.6-Setup.exe'
     filename: "Postman-win64-12.22.6-Setup.exe"
   install:
-    type: copy
-    destination: "C:\\ProgramData\\toolbox\\postman"
-    check:
-      path_exists: "C:\\ProgramData\\toolbox\\postman\\Postman-win64-12.22.6-Setup.exe"
+    type: exe_per_user
+    arguments: "-s"

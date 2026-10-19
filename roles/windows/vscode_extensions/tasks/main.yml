@@ -1,6 +1,6 @@
 ---
 # VS Code extensions are always per-user. This role makes them "machine-wide":
-#  1. drop the .vsix files into a shared folder (catalog, install type: copy)
+#  1. place the .vsix files (catalog, install type: vsix_per_user)
 #  2. write a script that installs them for the current user
 #  3. register the script with Windows Active Setup -> runs once per user at logon
 # Revision is automatic (see common/tasks/register_active_setup.yml).

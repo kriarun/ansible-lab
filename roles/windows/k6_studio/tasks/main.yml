@@ -1,19 +1,7 @@
 ---
-# k6 Studio's Setup.exe is per-user only (same pattern as the postman role):
-#  1. place the installer in C:\ProgramData (catalog, install type: copy)
-#  2. Active Setup runs it silently ONCE PER USER at their next logon.
-
-- name: Place k6 Studio installer
+- name: Install k6 Studio packages
   ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
   vars:
     software_catalog_entry: k6_studio.yml
     software_package_list: "{{ k6_studio_packages }}"
     software_role_name: k6_studio
-
-- name: Install k6 Studio per user at logon (Active Setup)
-  ansible.builtin.include_tasks: ../../common/tasks/register_active_setup.yml
-  vars:
-    active_setup_component: ToolboxK6Studio
-    active_setup_stub_path: '"{{ resolved_packages[0].install.destination }}\{{ resolved_packages[0].installer.filename }}" --silent'
-    active_setup_fingerprint: "{{ k6_studio_packages | join(',') }}"
-  when: k6_studio_packages | length > 0

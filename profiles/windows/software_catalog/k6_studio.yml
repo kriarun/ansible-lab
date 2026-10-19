@@ -1,15 +1,11 @@
-# Grafana k6 Studio (official Setup.exe). Like Postman, the installer is
-# PER-USER only (Electron/Squirrel, installs into %LOCALAPPDATA%), so Ansible
-# only places the file and the k6_studio role registers it with Active Setup
-# -> each user gets k6 Studio installed into their own profile at next logon.
-# k6 Studio auto-updates per user after that; the pinned version is the baseline.
+# Grafana k6 Studio (official Setup.exe, Squirrel). Per-user only installer:
+# placed by Ansible, installed into each user's profile at their next logon.
+# k6 Studio auto-updates per user afterwards; the pinned version is the baseline.
 k6_studio_1_5_0:
   source:
     type: jfrog
     url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/k6-studio/1.5.0/k6.Studio-1.5.0-Setup.exe'
     filename: "k6.Studio-1.5.0-Setup.exe"
   install:
-    type: copy
-    destination: "C:\\ProgramData\\toolbox\\k6-studio"
-    check:
-      path_exists: "C:\\ProgramData\\toolbox\\k6-studio\\k6.Studio-1.5.0-Setup.exe"
+    type: exe_per_user
+    arguments: "--silent"

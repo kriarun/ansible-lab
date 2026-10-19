@@ -1,6 +1,6 @@
-# VS Code extensions (offline .vsix files).
-# Each entry only drops the .vsix into C:\ProgramData\vscode\vsix; the
-# vscode_extensions role installs them per user at logon (Windows Active Setup).
+# VS Code extensions (offline .vsix files), installed per user at logon.
+# vsix_per_user implies the location (C:\ProgramData\vscode\vsix); the
+# vscode_extensions role installs all of them in one Active Setup run.
 # Key pattern: vsix_<publisher>_<name>_<version>, dots/dashes -> underscores.
 
 vsix_ms_playwright_playwright_1_1_15:
@@ -9,10 +9,7 @@ vsix_ms_playwright_playwright_1_1_15:
     url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/vscode-extensions/ms-playwright.playwright-1.1.15.vsix'
     filename: "ms-playwright.playwright-1.1.15.vsix"
   install:
-    type: copy
-    destination: "C:\\ProgramData\\vscode\\vsix"
-    check:
-      path_exists: "C:\\ProgramData\\vscode\\vsix\\ms-playwright.playwright-1.1.15.vsix"
+    type: vsix_per_user
 
 vsix_alexkrechik_cucumberautocomplete_3_0_5:
   source:
@@ -20,7 +17,4 @@ vsix_alexkrechik_cucumberautocomplete_3_0_5:
     url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/vscode-extensions/alexkrechik.cucumberautocomplete-3.0.5.vsix'
     filename: "alexkrechik.cucumberautocomplete-3.0.5.vsix"
   install:
-    type: copy
-    destination: "C:\\ProgramData\\vscode\\vsix"
-    check:
-      path_exists: "C:\\ProgramData\\vscode\\vsix\\alexkrechik.cucumberautocomplete-3.0.5.vsix"
+    type: vsix_per_user

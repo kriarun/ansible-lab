@@ -3,7 +3,7 @@
 # Installs extensions into the user's own profile.
 
 $code    = '{{ vscode_cli_path }}'
-$vsixDir = '{{ vscode_extensions_vsix_dir }}'
+$vsixDir = '{{ vsix_per_user_dir }}'
 $log     = Join-Path $env:LOCALAPPDATA 'toolbox-vscode-extensions.log'
 
 "$(Get-Date -Format s) revision {{ active_setup_revision }} for $env:USERNAME" | Out-File $log -Append
