@@ -1,9 +1,13 @@
 team_roles:
   - python
   - machine_configuration
+  - bruno
 
 python_packages:
   - python_3_13_2
+
+bruno_packages:
+  - bruno_3_2_2
 
 machine_env:
   enabled: true

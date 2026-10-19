@@ -1,0 +1,7 @@
+---
+- name: Install Bruno packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: bruno.yml
+    software_package_list: "{{ bruno_packages }}"
+    software_role_name: bruno

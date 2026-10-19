@@ -1,0 +1,14 @@
+# Bruno API client — portable build extracted to Program Files so it is
+# available to every user (Electron installers default to per-user installs).
+# No self-updater in the portable build: upgrades go through a new catalog version.
+# ASSUMPTION: the zip has no top-level folder (Bruno.exe at the zip root).
+bruno_3_2_2:
+  source:
+    type: jfrog
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/bruno/3.2.2/bruno_3.2.2_x64_win.zip'
+    filename: "bruno_3.2.2_x64_win.zip"
+  install:
+    type: zip
+    destination: "C:\\Program Files\\Bruno-3.2.2"
+    check:
+      path_exists: "C:\\Program Files\\Bruno-3.2.2\\Bruno.exe"

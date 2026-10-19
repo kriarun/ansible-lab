@@ -1,0 +1,5 @@
+---
+# Pinned in the toolbox profile; this default only applies when the role
+# is used outside a profile.
+bruno_packages:
+  - bruno_3_2_2
