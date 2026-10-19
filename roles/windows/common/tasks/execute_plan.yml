@@ -92,9 +92,6 @@
     - not _pkg_already_installed
     - pkg.install.type in ["exe_per_user", "vsix_per_user"]
 
-# exe_per_user: one logon installation per role. The command contains the
-# versioned file name, so a version bump re-runs it for every user.
-# vsix_per_user: registered once for ALL extensions by the vscode_extensions role.
 - name: Install per user at logon (exe_per_user)
   ansible.builtin.include_tasks: register_logon_installation.yml
   vars:

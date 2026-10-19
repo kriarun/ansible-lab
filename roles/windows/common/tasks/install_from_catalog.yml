@@ -19,20 +19,14 @@
   loop_control:
     loop_var: software_key
 
-# exe_per_user registers ONE logon installation per role (Ansible_<role>).
-# Two such packages in one role would overwrite each other's entry: only the
-# last one installs, and the revision flips on every run. Per-user installers
-# also cannot keep two versions side by side. So: exactly one per role.
+# Only one exe_per_user package per role (they would overwrite each other).
 - name: Ensure at most one exe_per_user package per role
   ansible.builtin.assert:
     that:
       - _per_user_keys | length <= 1
     fail_msg: >-
-      Role '{{ software_role_name | default('unknown') }}' pins
-      {{ _per_user_keys | length }} exe_per_user packages ({{ _per_user_keys | join(', ') }}).
-      exe_per_user supports exactly one package per role: keep only the version
-      you want in {{ software_role_name | default('the role') }}_packages, or give
-      another tool its own role.
+      Role '{{ software_role_name }}' has more than one exe_per_user package
+      ({{ _per_user_keys | join(', ') }}). Keep only one.
   vars:
     _per_user_keys: >-
       {{ resolved_packages
