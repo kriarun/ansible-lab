@@ -10,5 +10,5 @@ postman_12_22_6:
     type: exe_per_user
     destination: "{{ exe_per_user_dir }}"
     check:
-      path_exists: "{{ exe_per_user_dir }}\\Postman-win64-12.22.6-Setup.exe"
+      path_exists: '{{ exe_per_user_dir }}\Postman-win64-12.22.6-Setup.exe'
     arguments: "-s"

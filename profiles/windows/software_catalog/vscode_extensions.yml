@@ -12,7 +12,7 @@ vsix_ms_playwright_playwright_1_1_15:
     type: vsix_per_user
     destination: "{{ vsix_per_user_dir }}"
     check:
-      path_exists: "{{ vsix_per_user_dir }}\\ms-playwright.playwright-1.1.15.vsix"
+      path_exists: '{{ vsix_per_user_dir }}\ms-playwright.playwright-1.1.15.vsix'
 
 vsix_alexkrechik_cucumberautocomplete_3_0_5:
   source:
@@ -23,4 +23,4 @@ vsix_alexkrechik_cucumberautocomplete_3_0_5:
     type: vsix_per_user
     destination: "{{ vsix_per_user_dir }}"
     check:
-      path_exists: "{{ vsix_per_user_dir }}\\alexkrechik.cucumberautocomplete-3.0.5.vsix"
+      path_exists: '{{ vsix_per_user_dir }}\alexkrechik.cucumberautocomplete-3.0.5.vsix'

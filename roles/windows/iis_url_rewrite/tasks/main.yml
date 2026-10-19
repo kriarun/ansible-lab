@@ -4,4 +4,3 @@
   vars:
     software_catalog_entry: iis_url_rewrite.yml
     software_package_list: "{{ iis_url_rewrite_packages | default([]) }}"
-    software_role_name: iis_url_rewrite

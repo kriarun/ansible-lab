@@ -10,5 +10,5 @@ k6_studio_1_5_0:
     type: exe_per_user
     destination: "{{ exe_per_user_dir }}"
     check:
-      path_exists: "{{ exe_per_user_dir }}\\k6.Studio-1.5.0-Setup.exe"
+      path_exists: '{{ exe_per_user_dir }}\k6.Studio-1.5.0-Setup.exe'
     arguments: "--silent"

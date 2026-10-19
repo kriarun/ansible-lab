@@ -10,7 +10,6 @@
   vars:
     software_catalog_entry: vscode_extensions.yml
     software_package_list: "{{ vscode_extensions_packages }}"
-    software_role_name: vscode_extensions
 
 - name: Configure per-user extension install
   when: vscode_extensions_packages | length > 0

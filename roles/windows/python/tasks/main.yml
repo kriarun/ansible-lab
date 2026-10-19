@@ -4,7 +4,6 @@
   vars:
     software_catalog_entry: python.yml
     software_package_list: "{{ python_packages }}"
-    software_role_name: python
 
 - name: Add software paths
   ansible.builtin.include_tasks: ../../common/tasks/add_path.yml

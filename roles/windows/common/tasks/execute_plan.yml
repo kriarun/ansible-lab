@@ -95,7 +95,7 @@
 - name: Install per user at logon (exe_per_user)
   ansible.builtin.include_tasks: register_logon_installation.yml
   vars:
-    logon_installation_name: "{{ software_role_name }}"
+    logon_installation_name: "{{ software_catalog_entry | splitext | first }}"
     logon_installation_command: '"{{ pkg.install.check.path_exists }}" {{ pkg.install.arguments }}'
   when: pkg.install.type == "exe_per_user"
 

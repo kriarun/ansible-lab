@@ -4,4 +4,3 @@
   vars:
     software_catalog_entry: dotnet_hosting.yml
     software_package_list: "{{ dotnet_hosting_packages | default([]) }}"
-    software_role_name: dotnet_hosting

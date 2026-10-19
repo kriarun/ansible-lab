@@ -4,6 +4,5 @@
   vars:
     software_catalog_entry: vscode.yml
     software_package_list: "{{ vscode_packages }}"
-    software_role_name: vscode
 
 

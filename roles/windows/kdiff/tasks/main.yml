@@ -3,7 +3,6 @@
   vars:
     software_catalog_entry: kdiff3.yml
     software_package_list: "{{ kdiff3_packages }}"
-    software_role_name: kdiff3
 
 - name: Add KDiff3 to system PATH
   ansible.windows.win_path:

@@ -25,8 +25,8 @@
     that:
       - _per_user_keys | length <= 1
     fail_msg: >-
-      Role '{{ software_role_name }}' has more than one exe_per_user package
-      ({{ _per_user_keys | join(', ') }}). Keep only one.
+      More than one exe_per_user package ({{ _per_user_keys | join(', ') }}).
+      Keep only one.
   vars:
     _per_user_keys: >-
       {{ resolved_packages

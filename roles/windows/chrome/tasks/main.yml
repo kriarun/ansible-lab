@@ -4,4 +4,3 @@
   vars:
     software_catalog_entry: chrome.yml
     software_package_list: "{{ chrome_packages }}"
-    software_role_name: chrome

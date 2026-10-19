@@ -4,4 +4,3 @@
   vars:
     software_catalog_entry: k6.yml
     software_package_list: "{{ k6_packages }}"
-    software_role_name: k6

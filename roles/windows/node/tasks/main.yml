@@ -4,7 +4,6 @@
   vars:
     software_catalog_entry: node.yml
     software_package_list: "{{ node_packages }}"
-    software_role_name: node
 
 # Configuration runs on EVERY play (not only on fresh install), so registry/CA
 # changes reach existing machines and survive Node/npm upgrades.
