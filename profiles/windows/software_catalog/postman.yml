@@ -8,4 +8,7 @@ postman_12_22_6:
     filename: "Postman-win64-12.22.6-Setup.exe"
   install:
     type: exe_per_user
+    destination: "{{ exe_per_user_dir }}"
+    check:
+      path_exists: "{{ exe_per_user_dir }}\\Postman-win64-12.22.6-Setup.exe"
     arguments: "-s"

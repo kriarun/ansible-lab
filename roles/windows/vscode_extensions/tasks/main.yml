@@ -2,8 +2,8 @@
 # VS Code extensions are always per-user. This role makes them "machine-wide":
 #  1. place the .vsix files (catalog, install type: vsix_per_user)
 #  2. write a script that installs them for the current user
-#  3. register the script with Windows Active Setup -> runs once per user at logon
-# Revision is automatic (see common/tasks/register_active_setup.yml).
+#  3. register the script as a logon installation -> runs once per user at logon
+# Revision is automatic (see common/tasks/register_logon_installation.yml).
 
 - name: Place VS Code extension files
   ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
@@ -15,13 +15,14 @@
 - name: Configure per-user extension install
   when: vscode_extensions_packages | length > 0
   block:
-    - name: Register extension install with Active Setup
-      ansible.builtin.include_tasks: ../../common/tasks/register_active_setup.yml
+    - name: Install extensions per user at logon
+      ansible.builtin.include_tasks: ../../common/tasks/register_logon_installation.yml
       vars:
-        active_setup_component: ToolboxVSCodeExtensions
-        active_setup_stub_path: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{{ vscode_extensions_script_path }}"'
-        # Keys contain the version, so a version bump changes the fingerprint too.
-        active_setup_fingerprint: "{{ vscode_extensions_packages | join(',') }}"
+        logon_installation_name: vscode_extensions
+        logon_installation_command: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{{ vscode_extensions_script_path }}"'
+        # The command never changes (same script path); the LIST does.
+        # Keys contain the version, so a version bump changes the content too.
+        logon_installation_content: "{{ vscode_extensions_packages | join(',') }}"
 
     - name: Write per-user extension install script
       ansible.windows.win_template:

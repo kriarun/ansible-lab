@@ -6,3 +6,9 @@ installer_cache_dir: "C:/Temp/ansible/installer"
 
 ansible_user: sevice_account_tst
 ansible_password: "{{ lookup('env','ANSIBLE_USER_PASSWORD_tst')}}"
+
+# Packages for installation at user logon (exe_per_user / vsix_per_user).
+# Must be readable by all users and writable by admins only: packages here
+# run automatically at every user's logon.
+exe_per_user_dir: 'C:\ProgramData\Ansible\installers'
+vsix_per_user_dir: 'C:\ProgramData\Ansible\vscode-extensions'

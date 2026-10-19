@@ -1,6 +1,6 @@
 # VS Code extensions (offline .vsix files), installed per user at logon.
-# vsix_per_user implies the location (C:\ProgramData\vscode\vsix); the
-# vscode_extensions role installs all of them in one Active Setup run.
+# Files are placed in vsix_per_user_dir (group_vars); the vscode_extensions
+# role installs all of them in one Active Setup run.
 # Key pattern: vsix_<publisher>_<name>_<version>, dots/dashes -> underscores.
 
 vsix_ms_playwright_playwright_1_1_15:
@@ -10,6 +10,9 @@ vsix_ms_playwright_playwright_1_1_15:
     filename: "ms-playwright.playwright-1.1.15.vsix"
   install:
     type: vsix_per_user
+    destination: "{{ vsix_per_user_dir }}"
+    check:
+      path_exists: "{{ vsix_per_user_dir }}\\ms-playwright.playwright-1.1.15.vsix"
 
 vsix_alexkrechik_cucumberautocomplete_3_0_5:
   source:
@@ -18,3 +21,6 @@ vsix_alexkrechik_cucumberautocomplete_3_0_5:
     filename: "alexkrechik.cucumberautocomplete-3.0.5.vsix"
   install:
     type: vsix_per_user
+    destination: "{{ vsix_per_user_dir }}"
+    check:
+      path_exists: "{{ vsix_per_user_dir }}\\alexkrechik.cucumberautocomplete-3.0.5.vsix"

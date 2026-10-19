@@ -1,12 +1,12 @@
 # Managed by Ansible (role: vscode_extensions) - do not edit by hand.
-# Runs once per user at logon via Active Setup (revision {{ active_setup_revision }}).
+# Runs once per user at logon as a logon installation (Active Setup) (revision {{ logon_installation_revision }}).
 # Installs extensions into the user's own profile.
 
 $code    = '{{ vscode_cli_path }}'
 $vsixDir = '{{ vsix_per_user_dir }}'
-$log     = Join-Path $env:LOCALAPPDATA 'toolbox-vscode-extensions.log'
+$log     = Join-Path $env:LOCALAPPDATA 'ansible-vscode-extensions.log'
 
-"$(Get-Date -Format s) revision {{ active_setup_revision }} for $env:USERNAME" | Out-File $log -Append
+"$(Get-Date -Format s) revision {{ logon_installation_revision }} for $env:USERNAME" | Out-File $log -Append
 
 if (-not (Test-Path $code)) {
     "VS Code CLI not found at $code - skipping" | Out-File $log -Append

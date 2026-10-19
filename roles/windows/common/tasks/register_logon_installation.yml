@@ -1,0 +1,58 @@
+---
+# Registers a command that Windows runs once per user at their next logon
+# (Windows "Active Setup"). Re-runs for everyone when the content changes.
+#
+# Inputs:  logon_installation_name, logon_installation_command,
+#          logon_installation_content (optional, defaults to the command)
+# Output:  logon_installation_revision
+
+- name: Validate logon installation inputs
+  ansible.builtin.assert:
+    that:
+      - logon_installation_name is defined and logon_installation_name | length > 0
+      - logon_installation_command is defined and logon_installation_command | length > 0
+    fail_msg: "register_logon_installation.yml needs logon_installation_name and logon_installation_command"
+
+- name: Set registry entry and content hash ({{ logon_installation_name }})
+  ansible.builtin.set_fact:
+    _li_key: "HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components\\Ansible_{{ logon_installation_name }}"
+    _li_hash: "{{ (logon_installation_content | default(logon_installation_command)) | hash('sha1') }}"
+
+- name: Read stored content hash ({{ logon_installation_name }})
+  ansible.windows.win_reg_stat:
+    path: "{{ _li_key }}"
+    name: ContentHash
+  register: _li_stored_hash
+
+- name: Read stored version ({{ logon_installation_name }})
+  ansible.windows.win_reg_stat:
+    path: "{{ _li_key }}"
+    name: Version
+  register: _li_stored_version
+
+# Version = old + 1 on change. Not the hash itself: Windows only re-runs on a HIGHER version.
+- name: Compute revision ({{ logon_installation_name }})
+  ansible.builtin.set_fact:
+    logon_installation_revision: >-
+      {{
+        _li_current_rev | int
+        if (_li_stored_hash.exists and _li_stored_hash.value == _li_hash)
+        else (_li_current_rev | int) + 1
+      }}
+  vars:
+    _li_current_rev: >-
+      {{ (_li_stored_version.value.split(',') | last) if _li_stored_version.exists else 0 }}
+
+- name: Register logon installation ({{ logon_installation_name }})
+  ansible.windows.win_regedit:
+    path: "{{ _li_key }}"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "{{ item.type }}"
+  loop:
+    - { name: StubPath,    data: "{{ logon_installation_command }}",          type: string }
+    - { name: Version,     data: "1,{{ logon_installation_revision }}",       type: string }
+    - { name: ContentHash, data: "{{ _li_hash }}",                            type: string }
+    - { name: IsInstalled, data: 1,                                           type: dword }
+  loop_control:
+    label: "{{ item.name }}"

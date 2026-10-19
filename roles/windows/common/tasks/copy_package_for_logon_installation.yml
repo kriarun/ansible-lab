@@ -1,0 +1,13 @@
+---
+# Copies the package to its destination folder for installation at user logon
+# (exe_per_user, vsix_per_user). See register_logon_installation.yml.
+- name: Ensure destination folder exists
+  ansible.windows.win_file:
+    path: "{{ pkg.install.destination }}"
+    state: directory
+
+- name: Copy package to destination folder
+  ansible.windows.win_copy:
+    src: "{{ pkg.installer.final_path }}"
+    dest: "{{ pkg.install.check.path_exists }}"
+    remote_src: true

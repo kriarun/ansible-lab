@@ -4,6 +4,5 @@
 # whose dependency was not yet installed in pass 1 succeeds in pass 2.
 vscode_extensions_packages: []
 
-vsix_per_user_dir: "C:\\ProgramData\\vscode\\vsix"
-vscode_extensions_script_path: "C:\\ProgramData\\vscode\\install-extensions.ps1"
+vscode_extensions_script_path: "C:\\ProgramData\\Ansible\\install-vscode-extensions.ps1"
 vscode_cli_path: "C:\\Program Files\\Microsoft VS Code\\bin\\code.cmd"

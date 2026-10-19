@@ -19,7 +19,7 @@
   loop_control:
     loop_var: software_key
 
-# exe_per_user registers ONE Active Setup entry per role (Toolbox_<role>).
+# exe_per_user registers ONE logon installation per role (Ansible_<role>).
 # Two such packages in one role would overwrite each other's entry: only the
 # last one installs, and the revision flips on every run. Per-user installers
 # also cannot keep two versions side by side. So: exactly one per role.

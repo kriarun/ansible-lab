@@ -20,26 +20,6 @@
   ansible.builtin.set_fact:
     sw: "{{ software_catalog[software_key] }}"
 
-# Per-user types imply where the artifact is placed, so catalog entries only
-# need source + type (+ arguments). Ansible places the file; installation
-# happens per user at logon (Active Setup).
-- name: Apply implied location for per-user install types
-  ansible.builtin.set_fact:
-    sw: >-
-      {{ sw | combine({'install': {
-           'destination': _dir,
-           'check': {'path_exists': _dir ~ _sep ~ sw.source.filename}
-         }}, recursive=True) }}
-  vars:
-    _sep: '\'
-    _vsix_dir_default: 'C:\ProgramData\vscode\vsix'
-    _exe_dir_default: 'C:\ProgramData\toolbox\installers'
-    _dir: >-
-      {{ (vsix_per_user_dir | default(_vsix_dir_default))
-         if sw.install.type == 'vsix_per_user'
-         else (exe_per_user_dir | default(_exe_dir_default)) }}
-  when: (sw.install.type | default('')) in ['exe_per_user', 'vsix_per_user']
-
 - name: Validate source structure
   ansible.builtin.assert:
     that:
@@ -75,6 +55,14 @@
       - sw.install.check.path_exists is defined
     fail_msg: "ZIP package {{ software_key }} missing required fields"
   when: sw.install.type == "zip"
+
+- name: Validate PER-USER install fields
+  ansible.builtin.assert:
+    that:
+      - sw.install.destination is defined
+      - sw.install.check.path_exists is defined
+    fail_msg: "Per-user package {{ software_key }} missing destination or check.path_exists"
+  when: sw.install.type in ["exe_per_user", "vsix_per_user"]
 
 - name: Validate EXE_PER_USER install fields
   ansible.builtin.assert:
