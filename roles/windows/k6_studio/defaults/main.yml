@@ -1,0 +1,5 @@
+---
+# Pinned in the toolbox profile; this default only applies when the role
+# is used outside a profile.
+k6_studio_packages:
+  - k6_studio_1_5_0

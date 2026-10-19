@@ -1,0 +1,22 @@
+---
+# Pinned in the toolbox profile; this default only applies when the role
+# is used outside a profile.
+node_packages:
+  - node_22_14_0
+
+# --- npm configuration (machine-wide, all users) ---------------------------
+# Written into npm's built-in config file, which every user on the machine reads.
+# The file is overwritten by Node/npm upgrades; this role re-applies the lines
+# on every run, so the config comes back after an upgrade.
+npm_builtin_npmrc_path: "C:\\Program Files\\nodejs\\node_modules\\npm\\npmrc"
+
+# Artifactory npm repository. Trailing slash required, and no explicit :443 —
+# npm matches the _authToken line against the registry URL textually.
+npm_registry_url: "https://jfrog.ch/artifactory/api/npm/npm-remote/"
+
+# Each user sets their own token once:  setx NPM_TOKEN <token>
+# The npmrc only holds the ${NPM_TOKEN?} placeholder, never a secret.
+npm_token_env_var: "NPM_TOKEN"
+
+# Bank internal CA bundle used to trust Artifactory's TLS certificate.
+npm_ca_bundle_path: "C:\\Users\\Public\\certs\\ca-bundle.crt"

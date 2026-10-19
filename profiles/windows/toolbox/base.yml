@@ -19,3 +19,6 @@ jdk_packages:
 
 maven_packages:
   - maven_3_9_9
+
+postman_packages:
+  - postman_12_22_6

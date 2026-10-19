@@ -1,0 +1,12 @@
+# Mozilla Firefox ESR (EXE, silent install) — for developers to try the application manually.
+# NOTE: Firefox auto-updates; the pinned version is only the install baseline.
+firefox_128_2_0esr:
+  source:
+    type: jfrog
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/firefox/128.2.0esr/Firefox Setup 128.2.0esr.exe'
+    filename: "Firefox Setup 128.2.0esr.exe"
+  install:
+    type: exe
+    arguments: "/S"
+    check:
+      path_exists: "C:\\Program Files\\Mozilla Firefox\\firefox.exe"

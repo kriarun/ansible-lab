@@ -1,0 +1,13 @@
+# Grafana k6 Studio — portable build extracted to Program Files so it is
+# available to every user (the standard Setup.exe installs per-user only).
+# ASSUMPTION: the zip has no top-level folder (k6 Studio.exe at the zip root).
+k6_studio_1_5_0:
+  source:
+    type: jfrog
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/k6-studio/1.5.0/k6-studio-1.5.0-win32-x64.zip'
+    filename: "k6-studio-1.5.0-win32-x64.zip"
+  install:
+    type: zip
+    destination: "C:\\Program Files\\k6-studio-1.5.0"
+    check:
+      path_exists: "C:\\Program Files\\k6-studio-1.5.0\\k6 Studio.exe"

@@ -1,9 +1,29 @@
+# Team QA toolbox — added on top of profiles/windows/toolbox/base.yml.
 team_roles:
-  - dotnet_hosting
+  - node
+  - k6
+  - k6_studio
+  - chrome
+  - firefox
+  - ctags
 
+node_packages:
+  - node_22_14_0
 
+k6_packages:
+  - k6_1_7_0
 
-  
-  
+k6_studio_packages:
+  - k6_studio_1_5_0
+
+chrome_packages:
+  - chrome_153_0_8010_37
+
+firefox_packages:
+  - firefox_128_2_0esr
+
+ctags_packages:
+  - ctags_p6_2_20251130
+
 debug_mode: true
 installer_cache_dir: "C:\\Temp\\ansible\\installers"

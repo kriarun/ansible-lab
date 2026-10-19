@@ -1,0 +1,16 @@
+# Universal Ctags (ZIP), versioned folder under Program Files, added to PATH.
+# ASSUMPTION: the zip has no top-level folder (ctags.exe at the zip root).
+ctags_p6_2_20251130:
+  source:
+    type: jfrog
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/ctags/p6.2.20251130/ctags-p6.2.20251130-x64.zip'
+    filename: "ctags-p6.2.20251130-x64.zip"
+  install:
+    type: zip
+    destination: "C:\\Program Files\\ctags-p6.2.20251130"
+    check:
+      path_exists: "C:\\Program Files\\ctags-p6.2.20251130\\ctags.exe"
+  path:
+    enabled: true
+    entries:
+      - "C:\\Program Files\\ctags-p6.2.20251130"

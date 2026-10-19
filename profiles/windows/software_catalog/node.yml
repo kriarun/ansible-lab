@@ -1,0 +1,11 @@
+# Node.js (MSI). The MSI adds C:\Program Files\nodejs to the machine PATH itself.
+node_22_14_0:
+  source:
+    type: jfrog
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/nodejs/22.14.0/node-v22.14.0-x64.msi'
+    filename: "node-v22.14.0-x64.msi"
+  install:
+    type: msi
+    arguments: "/qn"
+    check:
+      path_exists: "C:\\Program Files\\nodejs\\node.exe"

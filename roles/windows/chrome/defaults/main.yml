@@ -1,0 +1,5 @@
+---
+# Pinned in the toolbox profile; this default only applies when the role
+# is used outside a profile.
+chrome_packages:
+  - chrome_153_0_8010_37

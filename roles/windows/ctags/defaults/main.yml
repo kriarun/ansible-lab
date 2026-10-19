@@ -1,0 +1,5 @@
+---
+# Pinned in the toolbox profile; this default only applies when the role
+# is used outside a profile.
+ctags_packages:
+  - ctags_p6_2_20251130

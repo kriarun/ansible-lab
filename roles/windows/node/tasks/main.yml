@@ -1,0 +1,50 @@
+---
+- name: Install Node.js packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: node.yml
+    software_package_list: "{{ node_packages }}"
+    software_role_name: node
+
+# Configuration runs on EVERY play (not only on fresh install), so registry/CA
+# changes reach existing machines and survive Node/npm upgrades.
+
+- name: Check internal CA bundle exists
+  ansible.windows.win_stat:
+    path: "{{ npm_ca_bundle_path }}"
+  register: _npm_ca_bundle
+
+- name: Fail if internal CA bundle is missing
+  ansible.builtin.assert:
+    that:
+      - _npm_ca_bundle.stat.exists
+    fail_msg: >-
+      CA bundle not found at {{ npm_ca_bundle_path }}. Without it every npm
+      call to Artifactory fails with a certificate error.
+
+- name: Configure npm registry, auth placeholder and CA for all users
+  community.windows.win_lineinfile:
+    path: "{{ npm_builtin_npmrc_path }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - regexp: '^registry='
+      line: "registry={{ npm_registry_url }}"
+    - regexp: '^//.*:_authToken='
+      # Renders: //host/path/:_authToken=${NPM_TOKEN?}
+      # The '?' makes npm treat an unset variable as empty instead of failing every command.
+      line: "{{ npm_registry_url | regex_replace('^https?:', '') }}:_authToken=${{ '{' }}{{ npm_token_env_var }}?}"
+    - regexp: '^cafile='
+      line: "cafile={{ npm_ca_bundle_path }}"
+  loop_control:
+    label: "{{ item.regexp }}"
+
+# npm's cafile only covers npm itself. Node processes (Playwright scripts,
+# fetch calls to internal HTTPS APIs) need NODE_EXTRA_CA_CERTS.
+- name: Trust internal CA for all Node.js processes
+  ansible.windows.win_environment:
+    name: NODE_EXTRA_CA_CERTS
+    value: "{{ npm_ca_bundle_path }}"
+    level: machine
+    state: present

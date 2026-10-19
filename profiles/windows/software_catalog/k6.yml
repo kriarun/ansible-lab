@@ -1,0 +1,11 @@
+# Grafana k6 CLI (MSI). The MSI adds C:\Program Files\k6 to the machine PATH itself.
+k6_1_7_0:
+  source:
+    type: jfrog
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/k6/1.7.0/k6-v1.7.0-windows-amd64.msi'
+    filename: "k6-v1.7.0-windows-amd64.msi"
+  install:
+    type: msi
+    arguments: "/qn"
+    check:
+      path_exists: "C:\\Program Files\\k6\\k6.exe"
