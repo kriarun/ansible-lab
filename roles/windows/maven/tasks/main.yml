@@ -1,0 +1,7 @@
+---
+- name: Install Maven packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: maven.yml
+    software_package_list: "{{ maven_packages }}"
+    software_role_name: maven

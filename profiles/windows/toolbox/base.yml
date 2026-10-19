@@ -1,7 +1,21 @@
+# Base toolbox profile — applied to EVERY team toolbox.
+# Team-specific software belongs in profiles/windows/toolbox/team_<x>.yml.
+# Order matters: jdk must precede maven (Maven needs JAVA_HOME).
 base_roles:
   - git
   - vscode
+  - jdk
+  - maven
   - postman
+
+git_packages:
+  - git_2_44_0
 
 vscode_packages:
   - vscode_1_87_0
+
+jdk_packages:
+  - jdk_23
+
+maven_packages:
+  - maven_3_9_9

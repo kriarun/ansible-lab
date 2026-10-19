@@ -1,0 +1,20 @@
+# Oracle JDK (EXE installer).
+# JAVA_HOME is owned by the JDK entry; consumers such as Maven rely on it.
+jdk_23:
+  source:
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "jdk-23_windows-x64_bin.exe"
+  install:
+    type: exe
+    arguments: '/s INSTALLDIR="C:\Program Files\Java\jdk-23"'
+    check:
+      path_exists: "C:\\Program Files\\Java\\jdk-23\\bin\\java.exe"
+  path:
+    enabled: true
+    entries:
+      - "C:\\Program Files\\Java\\jdk-23\\bin"
+  env:
+    enabled: true
+    variables:
+      JAVA_HOME: "C:\\Program Files\\Java\\jdk-23"

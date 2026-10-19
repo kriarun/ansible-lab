@@ -1,10 +1,12 @@
+# Visual Studio Code (system installer, machine-wide).
+# MERGETASKS=!runcode stops the installer from launching VS Code after setup.
 vscode_1_87_0:
   source:
-    type: jfrog
-    url: "https://jfrog.com"
-    filename: "Git-2.44.0-64-bit.exe"
+    type: local
+    path: "D:\\ManualDrops"
+    filename: "VSCodeSetup-x64-1.87.0.exe"
   install:
     type: exe
-    arguments: "/VERYSILENT"
+    arguments: "/VERYSILENT /NORESTART /MERGETASKS=!runcode"
     check:
-      path_exists: "C:\\Program Files\\Git\\bin\\git.exe"
+      path_exists: "C:\\Program Files\\Microsoft VS Code\\Code.exe"

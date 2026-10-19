@@ -20,7 +20,7 @@
           Example:
           ansible-playbook playbooks/windows/toolbox/on_demand_software.yml
           -i inventories/lab
-          -e "target_group=team_toolbox_alpha software_role=git"
+          -e "target_group=team_qa software_role=git"
 
     - name: Validate target group exists in inventory
       ansible.builtin.assert:

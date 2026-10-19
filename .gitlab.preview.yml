@@ -24,11 +24,11 @@ spec:
       rules:
         - if: $[[ inputs.domain ]] == 'toolbox'
           options:
-            - team_alpha
+            - team_qa
             - team_beta
             - team_gamma
             - team_neon
-          default: team_alpha
+          default: team_qa
         - if: $[[ inputs.domain ]] == 'platform'
           options:
             - uipath_orchestrator

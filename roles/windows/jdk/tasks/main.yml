@@ -1,0 +1,7 @@
+---
+- name: Install JDK packages
+  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+  vars:
+    software_catalog_entry: jdk.yml
+    software_package_list: "{{ jdk_packages }}"
+    software_role_name: jdk

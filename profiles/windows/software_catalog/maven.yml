@@ -1,30 +1,22 @@
-maven:
+# Apache Maven (ZIP).
+# The official zip contains a top-level folder (apache-maven-<version>),
+# so destination is the parent folder and the check points one level down.
+# Depends on JAVA_HOME from the jdk entry.
+maven_3_9_9:
   source:
     type: local
     path: "D:\\ManualDrops"
     filename: "apache-maven-3.9.9-bin.zip"
-
   install:
     type: zip
-    destination: "C:\\Tools\\apache-maven-3.9.9"
+    destination: "C:\\Tools"
     check:
       path_exists: "C:\\Tools\\apache-maven-3.9.9\\bin\\mvn.cmd"
-
   path:
     enabled: true
     entries:
       - "C:\\Tools\\apache-maven-3.9.9\\bin"
-
   env:
     enabled: true
     variables:
-      JAVA_HOME: /opt/jdk
-      MAVEN_HOME: /opt/maven
-
-  registry:
-    enabled: true
-    entries:
-      - path: HKLM:\Software\MyCompany\ToolX
-        name: Enabled
-        type: dword
-        value: 1
+      MAVEN_HOME: "C:\\Tools\\apache-maven-3.9.9"

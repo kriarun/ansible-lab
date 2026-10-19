@@ -101,7 +101,7 @@ Examples:
 Important current groups include:
 
 - `toolbox_servers`
-- `team_toolbox_alpha`
+- `team_qa`
 - `uipath_orchestrator`
 - `uipath_test_manager`
 - `linux_gitlab_runner`
@@ -133,7 +133,7 @@ Windows profile areas:
 Current examples:
 
 - [base.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/toolbox/base.yml)
-- [team_alpha.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/toolbox/team_alpha.yml)
+- [team_qa.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/toolbox/team_qa.yml)
 - [uipath_orchestrator.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/machines/uipath_orchestrator.yml)
 - [uipath_test_manager.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/machines/uipath_test_manager.yml)
 - [misc.yml](c:/Arun/Learning/Anisble/ansible-lab/profiles/windows/software_catalog/misc.yml)
@@ -197,7 +197,7 @@ Observed from [windows_toolbox.yml](c:/Arun/Learning/Anisble/ansible-lab/playboo
 
 1. target `toolbox_servers`
 2. load `profiles/windows/toolbox/base.yml`
-3. optionally load `team_alpha.yml` if the host belongs to `team_toolbox_alpha`
+3. optionally load `team_qa.yml` if the host belongs to `team_qa`
 4. compute `final_roles` using `base_roles + team_roles - remove_roles`
 5. include each role under `roles/windows/<role>`
 

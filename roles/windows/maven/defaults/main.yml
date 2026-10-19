@@ -1,0 +1,6 @@
+---
+# Pinned in profiles/windows/toolbox/base.yml; this default only applies
+# when the role is used outside a toolbox profile.
+# Requires a JDK: JAVA_HOME is set by the jdk role, not here.
+maven_packages:
+  - maven_3_9_9
