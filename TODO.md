@@ -94,7 +94,7 @@ Priority: **P1** = before any non-lab run · **P2** = before prd / audit · **P3
   | `source.url` / `source.path` / `source.share_path` | where the installer is | one key, e.g. `source.location` |
 - [ ] **Prefix all internal facts with `_`** (`sw`, `source_type`, `jfrog_cache_path`, `directory_name`, `marker_check`, `installer_file` are not) — `set_fact` lives for the whole play, so a stale value from the previous package can leak into the next one.
 - [ ] **Group files by stage** — `catalog/`, `resolve/`, `acquire/`, `install/`, `hooks/pre_install/`, `helpers/`; `install_from_catalog.yml` stays the only public entry point.
-- [ ] **Merge the 3 env-var helpers** — `add_env.yml`, `configure_environment_variables.yml`, `set_windows_env.yml` (+ env handling in `execute_plan.yml`).
+- [x] **Merge the 3 env-var helpers** — `add_env.yml`, `configure_environment_variables.yml`, `set_windows_env.yml` (+ env handling in `execute_plan.yml`).
 - [ ] **Put the "Expects / Sets" contract header back** at the top of each task file.
 - [ ] **Fix typo names** — `fetch_thumprint`, `montoring_mode`, `uipath_ochestrator_*`; role `uipath_orchestrator_migration` uses `uipath_orchestrator_packages`.
 - [ ] **Stage-prefixed task names** — `catalog | …`, `resolve | …`, `acquire | …`, `install | …`, `verify | …` so the run log reads like the README diagram.

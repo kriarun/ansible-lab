@@ -1,8 +1,14 @@
-- name: Configure environment variables are present
+---
+# The ONE place that sets machine-level environment variables.
+# Input: environment_variables — a dict of NAME: value.
+# Used by: execute_plan.yml (catalog env), environment_variables role (profile env),
+#          python and node roles.
+- name: Ensure machine environment variables are present
   ansible.windows.win_environment:
-    state: present
+    level: machine
     name: "{{ item.key }}"
     value: "{{ item.value }}"
-    level: machine
+    state: present
   loop: "{{ environment_variables | dict2items }}"
-  
+  loop_control:
+    label: "{{ item.key }}"

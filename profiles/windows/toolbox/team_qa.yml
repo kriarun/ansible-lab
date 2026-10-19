@@ -6,6 +6,7 @@ team_roles:
   - chrome
   - firefox
   - ctags
+  - environment_variables
 
 node_packages:
   - node_22_14_0
@@ -24,6 +25,13 @@ firefox_packages:
 
 ctags_packages:
   - ctags_p6_2_20251130
+
+# Playwright installs browsers inside each project's node_modules, so the
+# browser version always matches the project's Playwright version.
+machine_env:
+  enabled: true
+  variables:
+    PLAYWRIGHT_BROWSERS_PATH: "0"
 
 debug_mode: true
 installer_cache_dir: "C:\\Temp\\ansible\\installers"

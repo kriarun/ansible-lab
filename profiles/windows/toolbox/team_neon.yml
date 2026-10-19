@@ -1,5 +1,5 @@
 team_roles:
-  - machine_configuration
+  - environment_variables
   - python
 
 python_packages:

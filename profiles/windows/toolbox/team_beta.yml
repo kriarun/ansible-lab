@@ -1,6 +1,6 @@
 team_roles:
   - python
-  - machine_configuration
+  - environment_variables
   - bruno
 
 python_packages:

@@ -150,7 +150,7 @@ Windows roles:
 - `vscode`
 - `dotnet`
 - `postman`
-- `machine_configuration`
+- `environment_variables`
 
 Role maturity is uneven:
 
@@ -209,7 +209,7 @@ Observed from [windows_uipath.yml](c:/Arun/Learning/Anisble/ansible-lab/playbook
 2. load machine profile variables
 3. compute `final_roles` from `machine_roles`
 4. include each role
-5. optionally apply machine-level environment variables through `machine_configuration`
+5. optionally apply machine-level environment variables through `environment_variables`
 
 ### Scenario 3: Package Resolution and Install
 

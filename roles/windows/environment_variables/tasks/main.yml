@@ -1,0 +1,9 @@
+---
+# Applies the team profile's machine_env.variables as machine-level env vars.
+- name: Apply machine environment variables
+  ansible.builtin.include_tasks: ../../common/tasks/configure_environment_variables.yml
+  vars:
+    environment_variables: "{{ machine_env.variables }}"
+  when:
+    - machine_env is defined
+    - machine_env.enabled | default(false)

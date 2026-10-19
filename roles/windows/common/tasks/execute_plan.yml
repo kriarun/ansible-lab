@@ -111,12 +111,9 @@
     - pkg.path.entries | length > 0
 
 - name: Adding configured environment variables for {{pkg.software_key | default('unknown')}} to the system
-  win_environment:
-    name: "{{ item.key }}"
-    value: "{{ item.value }}"
-    level: machine
-    state: present
-  loop: "{{ pkg.env.variables | dict2items }}"
+  ansible.builtin.include_tasks: configure_environment_variables.yml
+  vars:
+    environment_variables: "{{ pkg.env.variables }}"
   when:
     - not _pkg_already_installed
     - pkg.env is defined

@@ -43,8 +43,7 @@
 # npm's cafile only covers npm itself. Node processes (Playwright scripts,
 # fetch calls to internal HTTPS APIs) need NODE_EXTRA_CA_CERTS.
 - name: Trust internal CA for all Node.js processes
-  ansible.windows.win_environment:
-    name: NODE_EXTRA_CA_CERTS
-    value: "{{ npm_ca_bundle_path }}"
-    level: machine
-    state: present
+  ansible.builtin.include_tasks: ../../common/tasks/configure_environment_variables.yml
+  vars:
+    environment_variables:
+      NODE_EXTRA_CA_CERTS: "{{ npm_ca_bundle_path }}"

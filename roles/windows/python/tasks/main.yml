@@ -13,11 +13,13 @@
     loop_var: pkg
 
 - name: Add environment variables
-  ansible.builtin.include_tasks: ../../common/tasks/set_windows_env.yml
+  ansible.builtin.include_tasks: ../../common/tasks/configure_environment_variables.yml
   vars:
-    machine_env_variables: "{{ item.env.variables }}"
-  when: item.env is defined and item.env.enabled | default(false)
-  loop: "{{ resolved_packages }}"    
+    environment_variables: "{{ pkg.env.variables }}"
+  when: pkg.env is defined and pkg.env.enabled | default(false)
+  loop: "{{ resolved_packages }}"
+  loop_control:
+    loop_var: pkg    
 
 - name: Add registry entries
   ansible.builtin.include_tasks: ../../common/tasks/add_registry.yml
