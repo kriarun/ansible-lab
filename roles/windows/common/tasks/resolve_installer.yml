@@ -45,7 +45,7 @@
 - name: Validate install type
   ansible.builtin.assert:
     that:
-      - sw.install.type in ['exe', 'msi', 'zip', 'command-line']
+      - sw.install.type in ['exe', 'msi', 'zip', 'copy', 'command-line']
     fail_msg: "Unsupported install type: {{ sw.install.type }}"
 
 - name: Validate ZIP install fields
@@ -55,6 +55,14 @@
       - sw.install.check.path_exists is defined
     fail_msg: "ZIP package {{ software_key }} missing required fields"
   when: sw.install.type == "zip"
+
+- name: Validate COPY install fields
+  ansible.builtin.assert:
+    that:
+      - sw.install.destination is defined
+      - sw.install.check.path_exists is defined
+    fail_msg: "COPY package {{ software_key }} missing required fields"
+  when: sw.install.type == "copy"
 
 - name: Validate COMMAND-LINE install fields
   ansible.builtin.assert:

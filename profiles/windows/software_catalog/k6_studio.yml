@@ -1,13 +1,15 @@
-# Grafana k6 Studio — portable build extracted to Program Files so it is
-# available to every user (the standard Setup.exe installs per-user only).
-# ASSUMPTION: the zip has no top-level folder (k6 Studio.exe at the zip root).
+# Grafana k6 Studio (official Setup.exe). Like Postman, the installer is
+# PER-USER only (Electron/Squirrel, installs into %LOCALAPPDATA%), so Ansible
+# only places the file and the k6_studio role registers it with Active Setup
+# -> each user gets k6 Studio installed into their own profile at next logon.
+# k6 Studio auto-updates per user after that; the pinned version is the baseline.
 k6_studio_1_5_0:
   source:
     type: jfrog
-    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/k6-studio/1.5.0/k6-studio-1.5.0-win32-x64.zip'
-    filename: "k6-studio-1.5.0-win32-x64.zip"
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/k6-studio/1.5.0/k6.Studio-1.5.0-Setup.exe'
+    filename: "k6.Studio-1.5.0-Setup.exe"
   install:
-    type: zip
-    destination: "C:\\Program Files\\k6-studio-1.5.0"
+    type: copy
+    destination: "C:\\ProgramData\\toolbox\\k6-studio"
     check:
-      path_exists: "C:\\Program Files\\k6-studio-1.5.0\\k6 Studio.exe"
+      path_exists: "C:\\ProgramData\\toolbox\\k6-studio\\k6.Studio-1.5.0-Setup.exe"

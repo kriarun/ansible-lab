@@ -86,6 +86,12 @@
     - not _pkg_already_installed
     - pkg.install.type == "zip"
 
+- name: Install package (COPY)
+  ansible.builtin.include_tasks: install_copy.yml
+  when:
+    - not _pkg_already_installed
+    - pkg.install.type == "copy"
+
 #TODO command line
 
 #- name: Debug all variables at this level

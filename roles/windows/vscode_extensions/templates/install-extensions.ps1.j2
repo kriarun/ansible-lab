@@ -1,0 +1,37 @@
+# Managed by Ansible (role: vscode_extensions) - do not edit by hand.
+# Runs once per user at logon via Active Setup (revision {{ active_setup_revision }}).
+# Installs extensions into the user's own profile.
+
+$code    = '{{ vscode_cli_path }}'
+$vsixDir = '{{ vscode_extensions_vsix_dir }}'
+$log     = Join-Path $env:LOCALAPPDATA 'toolbox-vscode-extensions.log'
+
+"$(Get-Date -Format s) revision {{ active_setup_revision }} for $env:USERNAME" | Out-File $log -Append
+
+if (-not (Test-Path $code)) {
+    "VS Code CLI not found at $code - skipping" | Out-File $log -Append
+    exit 0
+}
+
+$pending = @(
+{% for f in _vsix_files %}
+    '{{ f }}'
+{% endfor %}
+)
+
+# Two passes: offline installs cannot fetch dependencies. An extension whose
+# dependency was not installed yet fails in pass 1 and succeeds in pass 2.
+foreach ($pass in 1..2) {
+    $failed = @()
+    foreach ($file in $pending) {
+        "Pass $pass - installing $file" | Out-File $log -Append
+        & $code --install-extension (Join-Path $vsixDir $file) --force *>> $log
+        if ($LASTEXITCODE -ne 0) { $failed += $file }
+    }
+    $pending = $failed
+    if ($pending.Count -eq 0) { break }
+}
+
+if ($pending.Count -gt 0) {
+    "FAILED after 2 passes: $($pending -join ', ')" | Out-File $log -Append
+}

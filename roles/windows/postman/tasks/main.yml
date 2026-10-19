@@ -1,7 +1,21 @@
 ---
-- name: Install Postman packages
+# Postman's Setup.exe is per-user only. Running it here would install Postman
+# for the Ansible service account, invisible to real users. Instead:
+#  1. place the installer in C:\ProgramData (catalog, install type: copy)
+#  2. Active Setup runs it silently ONCE PER USER at their next logon.
+
+- name: Place Postman installer
   ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
   vars:
     software_catalog_entry: postman.yml
     software_package_list: "{{ postman_packages }}"
     software_role_name: postman
+
+- name: Install Postman per user at logon (Active Setup)
+  ansible.builtin.include_tasks: ../../common/tasks/register_active_setup.yml
+  vars:
+    active_setup_component: ToolboxPostman
+    # -s = silent (Squirrel installer)
+    active_setup_stub_path: '"{{ resolved_packages[0].install.destination }}\{{ resolved_packages[0].installer.filename }}" -s'
+    active_setup_fingerprint: "{{ postman_packages | join(',') }}"
+  when: postman_packages | length > 0

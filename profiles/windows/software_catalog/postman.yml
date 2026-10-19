@@ -1,15 +1,15 @@
-# Postman — portable build extracted to Program Files so it is available to
-# every user (the standard Setup.exe installs per-user into %LOCALAPPDATA%).
-# No Squirrel Update.exe in the portable build, so no auto-update: upgrades
-# go through a new catalog version.
-# ASSUMPTION: the zip has no top-level folder (Postman.exe at the zip root).
+# Postman (official Setup.exe). The installer is PER-USER only (it installs into
+# %LOCALAPPDATA%\Postman), so Ansible does not run it: it only places the file,
+# and the postman role registers it with Active Setup -> each user gets Postman
+# installed into their own profile at next logon.
+# Postman auto-updates per user after that; the pinned version is the baseline.
 postman_12_22_6:
   source:
     type: jfrog
-    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/postman/12.22.6/Postman-win64-12.22.6.zip'
-    filename: "Postman-win64-12.22.6.zip"
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/postman/12.22.6/Postman-win64-12.22.6-Setup.exe'
+    filename: "Postman-win64-12.22.6-Setup.exe"
   install:
-    type: zip
-    destination: "C:\\Program Files\\Postman-12.22.6"
+    type: copy
+    destination: "C:\\ProgramData\\toolbox\\postman"
     check:
-      path_exists: "C:\\Program Files\\Postman-12.22.6\\Postman.exe"
+      path_exists: "C:\\ProgramData\\toolbox\\postman\\Postman-win64-12.22.6-Setup.exe"

@@ -1,0 +1,9 @@
+---
+# Catalog keys from software_catalog/vscode_extensions.yml.
+# Order does not matter: the install script runs two passes, so an extension
+# whose dependency was not yet installed in pass 1 succeeds in pass 2.
+vscode_extensions_packages: []
+
+vscode_extensions_vsix_dir: "C:\\ProgramData\\vscode\\vsix"
+vscode_extensions_script_path: "C:\\ProgramData\\vscode\\install-extensions.ps1"
+vscode_cli_path: "C:\\Program Files\\Microsoft VS Code\\bin\\code.cmd"
