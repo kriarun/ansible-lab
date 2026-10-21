@@ -353,12 +353,19 @@ Used by npm and Maven directly, and by the developer's own `pip.ini`. When the t
 
 ### Internal CA Bundle
 
-The bank's internal CA bundle (`roles/windows/ca_bundle/files/ca-bundle.crt`, public certificates only) is copied by the `ca_bundle` role, first in base, to `ca_bundle_path` (`C:\Users\Public\certs\ca-bundle.crt`). Used by npm (`cafile`) and pip (`cert`). Maven uses the Windows certificate store instead.
+npm (and pip, as documented) need the bank's internal CA bundle to trust Artifactory's TLS certificate; npm does not use the Windows certificate store. Maven does not need it (`MAVEN_OPTS` uses the Windows store).
 
-- Issued by: <fill in>
-- Expires: <fill in>
+The bundle is **not in the repo** and **not deployed by Ansible** (pending confirmation that certificate files may be stored in Git). It is placed manually:
 
-When the CA is renewed: replace the file, update the expiry above, deploy.
+1. Download the bundle from the team's setup page in Confluence (about 150 certificates: public roots plus the bank's internal CAs; no private key).
+2. Copy it on each machine to `C:\Users\Public\certs\ca-bundle.crt` (path fixed in the npm and pip templates).
+3. If it is missing, npm and pip fail when used (certificate or file error), not during the Ansible run.
+
+When the bank renews its CA: replace the file on every machine.
+
+- Internal CA expires: <fill in>
+
+Do not use `strict-ssl=false` as a workaround: it disables certificate checking and sends the Artifactory token to anyone impersonating the server.
 
 ## 9. Architecture Decisions
 

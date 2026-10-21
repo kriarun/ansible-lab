@@ -4,4 +4,4 @@ prefix=${APPDATA}\npm
 always-auth=true
 registry={{ npm_registry_url }}
 {{ npm_registry_url | regex_replace('^https?:', '') }}:_authToken=${ARTIFACTORY_API_KEY?}
-cafile={{ ca_bundle_path }}
+cafile=C:\Users\Public\certs\ca-bundle.crt

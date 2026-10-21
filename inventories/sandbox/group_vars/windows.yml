@@ -13,5 +13,3 @@ ansible_password: "{{ lookup('env','ANSIBLE_USER_PASSWORD_LAB')}}"
 exe_per_user_dir: 'C:\ProgramData\Ansible\installers'
 vsix_per_user_dir: 'C:\ProgramData\Ansible\vscode-extensions'
 
-# Internal CA bundle (ca_bundle role), used by npm and pip.
-ca_bundle_path: 'C:\Users\Public\certs\ca-bundle.crt'
