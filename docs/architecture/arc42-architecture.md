@@ -285,6 +285,81 @@ Installation success is currently validated through `install.check.path_exists`.
 
 Environment-specific variables come from inventories, while machine intent comes from profiles.
 
+### Package Pinning
+
+Package versions are pinned only in profiles (`base.yml`, `team_<x>.yml`, machine profiles) or inventory, never in role defaults. Teams and machines can need different versions; a role default would be a hidden second source. A missing pin fails the run (`<tool>_packages is undefined`). Role defaults hold only role settings such as paths.
+
+### Per-User Installation at Logon
+
+Some installers can only install into the profile of the user who runs them (Postman, k6 Studio, VS Code extensions). Run by Ansible, they would install for the service account only. Two install types handle this:
+
+| Type | Ansible does | Windows does |
+|---|---|---|
+| `exe_per_user` | copies the Setup.exe to `exe_per_user_dir`, registers it | runs it once per user at their next logon |
+| `vsix_per_user` | copies the .vsix to `vsix_per_user_dir` | installed by the `vscode_extensions` role (see below) |
+
+The mechanism is Windows Active Setup (`register_logon_installation.yml`):
+
+- Registry entry `HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components\Ansible_<name>`, name taken from the catalog file (`postman.yml` -> `Ansible_postman`).
+- Windows records per user what ran under the same path in `HKCU`. It runs the command again only when the machine version is higher.
+- Ansible raises the version automatically when the content changes (for `exe_per_user`: the command, which contains the versioned file name).
+- Only one `exe_per_user` package per role (enforced): two would overwrite the same entry.
+- Windows marks the entry as done even if the command fails.
+
+The package folders live under `C:\ProgramData\Ansible`: readable by all users, writable by admins only, because their content runs at every user's logon.
+
+Troubleshooting:
+
+- Did Windows run it for the user? Check `HKCU\...\Installed Components\Ansible_<name>`.
+- Retest for a user: delete that HKCU key, sign out and in (a reconnect is not a logon).
+- Run the `StubPath` command from the HKLM key by hand to see errors.
+- Paths in catalog entries: single quotes and a single backslash (`'{{ exe_per_user_dir }}\file.exe'`); a doubled backslash made the logon install fail silently.
+
+### VS Code Extensions
+
+Extensions are per team (`vscode_extensions` in `team_roles`, list in `vscode_extensions_packages`), not in base. All of a team's extensions are installed together in one logon run, so dependencies resolve in a second pass.
+
+- `--force`: the catalog version wins; users are brought back to it at every rollout (a user-installed newer version is downgraded).
+- Add an extension: upload the .vsix to JFrog, add a catalog entry (`type: vsix_per_user`), add its key to the team list. The revision bumps automatically.
+- The role fails early if VS Code is not installed.
+- User log: `%LOCALAPPDATA%\ansible-vscode-extensions.log`.
+- VS Code 1.87 is pinned: newer extensions may require a newer VS Code.
+
+### Tool Configuration
+
+Each tool's configuration lives in the role that installs the tool, and is written on every run (not only on install), so changes reach existing machines and survive upgrades. The files are machine-wide; nothing personal is stored by Ansible.
+
+| Tool | Machine-wide (Ansible) | Per user (developer) |
+|---|---|---|
+| npm | `node_modules\npm\npmrc` from `templates/npmrc.j2`, token as `${ARTIFACTORY_API_KEY?}` | sets `ARTIFACTORY_API_KEY` |
+| Maven | `<MAVEN_HOME>\conf\settings.xml` (copied), `MAVEN_OPTS` (Windows trust store, system proxy) | sets `ARTIFACTORY_USERNAME`, `ARTIFACTORY_API_KEY` |
+| pip | `C:\ProgramData\pip\pip.ini` with the CA cert | writes `%APPDATA%\pip\pip.ini` with URL and credentials (pip cannot read environment variables) |
+
+Notes:
+
+- npm: no `:443` in the registry URL; the auth line must match it textually. The `?` keeps npm working for users without a token.
+- Maven: environment variables in `settings.xml` must be UPPERCASE (`${env.ARTIFACTORY_API_KEY}`); Windows exposes them only in uppercase. `settings.xml` must not contain real credentials.
+
+### Artifactory Credentials
+
+Each developer sets two user-level environment variables once:
+
+```
+setx ARTIFACTORY_USERNAME <artifactory user>
+setx ARTIFACTORY_API_KEY <token>
+```
+
+Used by npm and Maven directly, and by the developer's own `pip.ini`. When the token is renewed, update the variable and the user `pip.ini`.
+
+### Internal CA Bundle
+
+The bank's internal CA bundle (`roles/windows/ca_bundle/files/ca-bundle.crt`, public certificates only) is copied by the `ca_bundle` role, first in base, to `ca_bundle_path` (`C:\Users\Public\certs\ca-bundle.crt`). Used by npm (`cafile`) and pip (`cert`). Maven uses the Windows certificate store instead.
+
+- Issued by: <fill in>
+- Expires: <fill in>
+
+When the CA is renewed: replace the file, update the expiry above, deploy.
+
 ## 9. Architecture Decisions
 
 Important decisions visible in the codebase today:
