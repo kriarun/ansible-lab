@@ -1,9 +1,4 @@
 ---
-# Pinned in the toolbox profile; this default only applies when the role
-# is used outside a profile.
-node_packages:
-  - node_22_14_0
-
 # --- npm configuration (machine-wide, all users) ---------------------------
 # npm's built-in config file, read by every user on the machine. The role
 # replaces it on every run (templates/npmrc.j2), so it survives Node/npm upgrades.

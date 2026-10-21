@@ -1,5 +1,0 @@
----
-# Pinned in the toolbox profile; this default only applies when the role
-# is used outside a profile.
-firefox_packages:
-  - firefox_128_2_0esr

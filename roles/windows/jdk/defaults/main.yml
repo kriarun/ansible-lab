@@ -1,5 +1,0 @@
----
-# Pinned in profiles/windows/toolbox/base.yml; this default only applies
-# when the role is used outside a toolbox profile.
-jdk_packages:
-  - jdk_23

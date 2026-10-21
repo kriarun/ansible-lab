@@ -1,6 +1,9 @@
 machine_roles:
   - git
 
+git_packages:
+  - git_2_44_0
+
 machine_env:
   enabled: true
   variables:
