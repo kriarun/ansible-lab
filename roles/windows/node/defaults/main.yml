@@ -8,8 +8,4 @@ npm_builtin_npmrc_path: "C:\\Program Files\\nodejs\\node_modules\\npm\\npmrc"
 # npm matches the _authToken line against the registry URL textually.
 npm_registry_url: "https://jfrog.ch/artifactory/api/npm/npm-remote/"
 
-# Each user sets their own Artifactory token once:  setx ARTIFACTORY_API_KEY <token>
-# Same variable is meant for Maven and pip later. The npmrc only holds the
-# ${ARTIFACTORY_API_KEY?} placeholder, never a secret.
-npm_token_env_var: "ARTIFACTORY_API_KEY"
 
