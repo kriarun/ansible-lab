@@ -1,0 +1,12 @@
+---
+# Copies the bank's internal CA bundle so tools that talk to Artifactory
+# (npm, pip) can trust its TLS certificate. Public certificates only.
+- name: Ensure CA bundle folder exists
+  ansible.windows.win_file:
+    path: "{{ ca_bundle_path | win_dirname }}"
+    state: directory
+
+- name: Copy internal CA bundle
+  ansible.windows.win_copy:
+    src: ca-bundle.crt
+    dest: "{{ ca_bundle_path }}"

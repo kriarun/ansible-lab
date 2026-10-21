@@ -8,15 +8,17 @@
 # Configuration runs on EVERY play (not only on fresh install), so registry/CA
 # changes reach existing machines and survive Node/npm upgrades.
 
-- name: Ensure CA bundle folder exists
-  ansible.windows.win_file:
-    path: "{{ npm_ca_bundle_path | win_dirname }}"
-    state: directory
+- name: Check internal CA bundle exists
+  ansible.windows.win_stat:
+    path: "{{ ca_bundle_path }}"
+  register: _ca_bundle
 
-- name: Copy internal CA bundle
-  ansible.windows.win_copy:
-    src: ca-bundle.crt
-    dest: "{{ npm_ca_bundle_path }}"
+- name: Fail if internal CA bundle is missing
+  ansible.builtin.assert:
+    that: _ca_bundle.stat.exists
+    fail_msg: >-
+      CA bundle not found at {{ ca_bundle_path }}.
+      Add the ca_bundle role before node.
 
 - name: Write npm configuration for all users
   ansible.windows.win_template:
@@ -29,4 +31,4 @@
   ansible.builtin.include_tasks: ../../common/tasks/configure_environment_variables.yml
   vars:
     environment_variables:
-      NODE_EXTRA_CA_CERTS: "{{ npm_ca_bundle_path }}"
+      NODE_EXTRA_CA_CERTS: "{{ ca_bundle_path }}"

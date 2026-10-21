@@ -1,8 +1,9 @@
 # Base toolbox profile — applied to EVERY team toolbox.
 # Team-specific software belongs in profiles/windows/toolbox/team_<x>.yml,
 # including VS Code extensions (vscode_extensions role, per team).
-# Order matters: jdk must precede maven (Maven needs JAVA_HOME).
+# Order matters: ca_bundle first (npm/pip need it); jdk before maven (JAVA_HOME).
 base_roles:
+  - ca_bundle
   - git
   - vscode
   - jdk

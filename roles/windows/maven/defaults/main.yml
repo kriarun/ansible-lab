@@ -4,3 +4,7 @@
 # Requires a JDK: JAVA_HOME is set by the jdk role, not here.
 maven_packages:
   - maven_3_9_9
+
+# Machine-wide MAVEN_OPTS. Java silently ignores misspelled properties,
+# so keep these names exact.
+maven_opts: "-Djavax.net.ssl.trustStoreType=Windows-ROOT -Djava.net.useSystemProxies=true"

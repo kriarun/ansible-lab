@@ -32,6 +32,29 @@
   vars:
     certificate_entries: "{{ item.certificate.entries }}"
   when:
-    - ansible_os_family == "Windows"
     - item.certificate is defined
-    - item.certificate.enabled | default(false)  
+    - item.certificate.enabled | default(false)
+  loop: "{{ resolved_packages }}"
+
+# pip configuration runs on EVERY play, so changes reach existing machines.
+- name: Check internal CA bundle exists
+  ansible.windows.win_stat:
+    path: "{{ ca_bundle_path }}"
+  register: _ca_bundle
+
+- name: Fail if internal CA bundle is missing
+  ansible.builtin.assert:
+    that: _ca_bundle.stat.exists
+    fail_msg: >-
+      CA bundle not found at {{ ca_bundle_path }}.
+      Add the ca_bundle role before python.
+
+- name: Ensure global pip config folder exists
+  ansible.windows.win_file:
+    path: C:\ProgramData\pip
+    state: directory
+
+- name: Write global pip configuration for all users
+  ansible.windows.win_template:
+    src: pip.ini.j2
+    dest: C:\ProgramData\pip\pip.ini

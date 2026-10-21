@@ -18,6 +18,3 @@ npm_registry_url: "https://jfrog.ch/artifactory/api/npm/npm-remote/"
 # ${ARTIFACTORY_API_KEY?} placeholder, never a secret.
 npm_token_env_var: "ARTIFACTORY_API_KEY"
 
-# Bank internal CA bundle used to trust Artifactory's TLS certificate.
-# Copied from roles/windows/node/files/ca-bundle.crt.
-npm_ca_bundle_path: "C:\\Users\\Public\\certs\\ca-bundle.crt"

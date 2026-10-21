@@ -1,0 +1,5 @@
+; Managed by Ansible (role: python) - replaced on every run, do not edit by hand.
+; Global pip config for all users. The Artifactory URL and credentials are
+; per user, in %APPDATA%\pip\pip.ini (see the team's pip setup page).
+[global]
+cert = {{ ca_bundle_path }}

@@ -4,3 +4,20 @@
   vars:
     software_catalog_entry: maven.yml
     software_package_list: "{{ maven_packages }}"
+
+# Configuration runs on EVERY play, so changes reach existing machines.
+
+# Global settings for every user. The path follows the installed Maven version
+# (MAVEN_HOME from the catalog), so an upgrade writes into the new folder.
+- name: Copy Maven settings for all users
+  ansible.windows.win_copy:
+    src: settings.xml
+    dest: "{{ resolved_packages[0].env.variables.MAVEN_HOME }}\\conf\\settings.xml"
+
+# Java uses the Windows certificate store (internal CA via Group Policy)
+# and the Windows proxy settings.
+- name: Set MAVEN_OPTS
+  ansible.builtin.include_tasks: ../../common/tasks/configure_environment_variables.yml
+  vars:
+    environment_variables:
+      MAVEN_OPTS: "{{ maven_opts }}"
