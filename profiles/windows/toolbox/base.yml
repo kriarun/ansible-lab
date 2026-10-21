@@ -1,10 +1,10 @@
 # Base toolbox profile — applied to EVERY team toolbox.
-# Team-specific software belongs in profiles/windows/toolbox/team_<x>.yml.
+# Team-specific software belongs in profiles/windows/toolbox/team_<x>.yml,
+# including VS Code extensions (vscode_extensions role, per team).
 # Order matters: jdk must precede maven (Maven needs JAVA_HOME).
 base_roles:
   - git
   - vscode
-  - vscode_extensions
   - jdk
   - maven
   - postman
@@ -14,11 +14,6 @@ git_packages:
 
 vscode_packages:
   - vscode_1_87_0
-
-# Offline .vsix files (order does not matter). Revision is automatic.
-vscode_extensions_packages:
-  - vsix_ms_playwright_playwright_1_1_15
-  - vsix_alexkrechik_cucumberautocomplete_3_0_5
 
 jdk_packages:
   - jdk_23

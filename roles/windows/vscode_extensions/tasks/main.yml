@@ -5,6 +5,18 @@
 #  3. register the script as a logon installation -> runs once per user at logon
 # Revision is automatic (see common/tasks/register_logon_installation.yml).
 
+- name: Check VS Code is installed
+  ansible.windows.win_stat:
+    path: "{{ vscode_cli_path }}"
+  register: _vscode_cli
+
+- name: Fail if VS Code is missing
+  ansible.builtin.assert:
+    that: _vscode_cli.stat.exists
+    fail_msg: >-
+      VS Code not found at {{ vscode_cli_path }}.
+      Install the vscode role before vscode_extensions.
+
 - name: Place VS Code extension files
   ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
   vars:
