@@ -1,0 +1,7 @@
+# Managed by Ansible (role: node) - replaced on every run, do not edit by hand.
+# Content as documented on the team's npm setup page.
+prefix=${APPDATA}\npm
+always-auth=true
+registry={{ npm_registry_url }}
+{{ npm_registry_url | regex_replace('^https?:', '') }}:_authToken=${{ '{' }}{{ npm_token_env_var }}?}
+cafile={{ npm_ca_bundle_path }}
