@@ -6,14 +6,12 @@ team_roles:
   - chrome
   - firefox
   - ctags
-  - environment_variables
-  - vscode_extensions   # last: a failure here can't block the other tools
+  - postman
+  - python
+  - environment_variables  
+  - vscode_extensions 
 
-# VS Code extensions for QA (offline .vsix files, order does not matter).
-# Installed per user at logon; revision is automatic.
-vscode_extensions_packages:
-  - vsix_ms_playwright_playwright_1_1_15
-  - vsix_alexkrechik_cucumberautocomplete_3_0_5
+
 
 node_packages:
   - node_22_14_0
@@ -33,12 +31,24 @@ firefox_packages:
 ctags_packages:
   - ctags_p6_2_20251130
 
-# Playwright installs browsers inside each project's node_modules, so the
-# browser version always matches the project's Playwright version.
+python_packages:
+  - python_3_13_2
+
+
+postman_packages:
+  - postman_12_22_6
+
 machine_env:
   enabled: true
   variables:
     PLAYWRIGHT_BROWSERS_PATH: "0"
+
+
+
+
+vscode_extensions_packages:
+  - vsix_ms_playwright_playwright_1_1_15
+  - vsix_alexkrechik_cucumberautocomplete_3_0_5    
 
 debug_mode: true
 installer_cache_dir: "C:\\Temp\\ansible\\installers"

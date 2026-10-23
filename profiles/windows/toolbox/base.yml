@@ -7,7 +7,7 @@ base_roles:
   - vscode
   - jdk
   - maven
-  - postman
+  - bruno
 
 git_packages:
   - git_2_44_0
@@ -21,5 +21,5 @@ jdk_packages:
 maven_packages:
   - maven_3_9_9
 
-postman_packages:
-  - postman_12_22_6
+bruno_packages:
+  - bruno_4_2_1

@@ -1,7 +1,7 @@
 python_3_10_11:
   source:
-    type: local
-    path: "D:\\ManualDrops"
+    type: jfrog
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/python/3.10.11/python-3.10.11-amd64.exe'
     filename: "python-3.10.11-amd64.exe"
   install:
     type: exe
@@ -12,7 +12,7 @@ python_3_10_11:
 python_3_13_2:
   source:
     type: jfrog
-    path: "D:\\ManualDrops"
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/python/3.13.2/python-3.13.2-amd64.exe'
     filename: "python-3.13.2-amd64.exe"
   install:
     type: exe
