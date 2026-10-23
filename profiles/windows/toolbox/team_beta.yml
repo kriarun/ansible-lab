@@ -7,7 +7,7 @@ python_packages:
   - python_3_13_2
 
 bruno_packages:
-  - bruno_3_2_2
+  - bruno_4_2_1
 
 machine_env:
   enabled: true

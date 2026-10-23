@@ -5,28 +5,49 @@
 #  3. register the script as a logon installation -> runs once per user at logon
 # Revision is automatic (see common/tasks/register_logon_installation.yml).
 
+# Single source: the VS Code path comes from its catalog entry
+# (check.path_exists = ...\Code.exe), for the version pinned in vscode_packages.
+# No catalog file, no pin or no entry -> empty path -> treated as "no VS Code".
+- name: Read VS Code path from its catalog entry
+  ansible.builtin.set_fact:
+    vscode_cli_path: >-
+      {{ (_entry.install.check.path_exists | ansible.builtin.win_dirname) ~ '\bin\code.cmd'
+         if _entry.install.check.path_exists is defined else '' }}
+  vars:
+    _catalog: >-
+      {{ lookup('ansible.builtin.template',
+                role_path ~ '/../../../profiles/windows/software_catalog/vscode.yml',
+                errors='ignore') | default('', true) | from_yaml | default({}, true) }}
+    _entry: "{{ _catalog[vscode_packages | default([]) | first | default('')] | default({}) }}"
+
 - name: Check VS Code is installed
   ansible.windows.win_stat:
     path: "{{ vscode_cli_path }}"
   register: _vscode_cli
+  when: vscode_cli_path | length > 0
 
-- name: Fail if VS Code is missing
-  ansible.builtin.assert:
-    that: _vscode_cli.stat.exists
-    fail_msg: >-
-      VS Code not found at {{ vscode_cli_path }}.
-      Install the vscode role before vscode_extensions.
+- name: Decide whether VS Code is installed
+  ansible.builtin.set_fact:
+    _vscode_installed: "{{ _vscode_cli.stat.exists | default(false) }}"
 
-- name: Place VS Code extension files
-  ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
-  vars:
-    software_catalog_entry: vscode_extensions.yml
-    software_package_list: "{{ vscode_extensions_packages }}"
+# No VS Code = the machine has no vscode role: skip, don't fail,
+# so the other roles still run.
+- name: Warn and skip if VS Code is missing
+  ansible.builtin.debug:
+    msg: "VS Code not found ({{ vscode_cli_path | default('no catalog entry', true) }}). Skipping VS Code extensions."
+  when: not _vscode_installed
 
-- name: Configure per-user extension install
-  when: vscode_extensions_packages | length > 0
+- name: Install VS Code extensions
+  when: _vscode_installed
   block:
+    - name: Place VS Code extension files
+      ansible.builtin.include_tasks: ../../common/tasks/install_from_catalog.yml
+      vars:
+        software_catalog_entry: vscode_extensions.yml
+        software_package_list: "{{ vscode_extensions_packages }}"
+
     - name: Install extensions per user at logon
+      when: vscode_extensions_packages | length > 0
       ansible.builtin.include_tasks: ../../common/tasks/register_logon_installation.yml
       vars:
         logon_installation_name: vscode_extensions
@@ -36,6 +57,7 @@
         logon_installation_content: "{{ vscode_extensions_packages | join(',') }}"
 
     - name: Write per-user extension install script
+      when: vscode_extensions_packages | length > 0
       ansible.windows.win_template:
         src: install-extensions.ps1.j2
         dest: "{{ vscode_extensions_script_path }}"

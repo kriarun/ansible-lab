@@ -1,14 +1,13 @@
-# Bruno API client — portable build extracted to Program Files so it is
-# available to every user (Electron installers default to per-user installs).
-# No self-updater in the portable build: upgrades go through a new catalog version.
-# ASSUMPTION: the zip has no top-level folder (Bruno.exe at the zip root).
-bruno_3_2_2:
+# Bruno API client (MSI, machine-wide).
+# AUTOUPDATE_ENABLED=FALSE turns off the self-updater: upgrades go through a
+# new catalog version, so every machine stays on the pinned version.
+bruno_4_2_1:
   source:
     type: jfrog
-    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/bruno/3.2.2/bruno_3.2.2_x64_win.zip'
-    filename: "bruno_3.2.2_x64_win.zip"
+    url: 'https://jfrog.ch:443/artifactory/robotics-generic-ansible-local/bruno/4.2.1/bruno_4.2.1_x64_win.msi'
+    filename: "bruno_4.2.1_x64_win.msi"
   install:
-    type: zip
-    destination: "C:\\Program Files\\Bruno-3.2.2"
+    type: msi
+    arguments: "/qn AUTOUPDATE_ENABLED=FALSE"
     check:
-      path_exists: "C:\\Program Files\\Bruno-3.2.2\\Bruno.exe"
+      path_exists: 'C:\Program Files\Bruno\Bruno.exe'

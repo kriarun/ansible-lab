@@ -1,6 +1,5 @@
 # Team QA toolbox — added on top of profiles/windows/toolbox/base.yml.
 team_roles:
-  - vscode_extensions
   - node
   - k6
   - k6_studio
@@ -8,6 +7,7 @@ team_roles:
   - firefox
   - ctags
   - environment_variables
+  - vscode_extensions   # last: a failure here can't block the other tools
 
 # VS Code extensions for QA (offline .vsix files, order does not matter).
 # Installed per user at logon; revision is automatic.
