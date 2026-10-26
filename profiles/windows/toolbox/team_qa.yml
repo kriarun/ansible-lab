@@ -1,20 +1,12 @@
 # Team QA toolbox — added on top of profiles/windows/toolbox/base.yml.
 team_roles:
-  - node
   - k6
   - k6_studio
   - chrome
   - firefox
   - ctags
   - postman
-  - python
-  - environment_variables  
-  - vscode_extensions 
-
-
-
-node_packages:
-  - node_22_14_0
+  - vscode_extensions   # last: a failure here can't block the other tools
 
 k6_packages:
   - k6_1_7_0
@@ -31,24 +23,12 @@ firefox_packages:
 ctags_packages:
   - ctags_p6_2_20251130
 
-python_packages:
-  - python_3_13_2
-
-
 postman_packages:
   - postman_12_22_6
 
-machine_env:
-  enabled: true
-  variables:
-    PLAYWRIGHT_BROWSERS_PATH: "0"
-
-
-
-
 vscode_extensions_packages:
   - vsix_ms_playwright_playwright_1_1_15
-  - vsix_alexkrechik_cucumberautocomplete_3_0_5    
+  - vsix_alexkrechik_cucumberautocomplete_3_0_5
 
 debug_mode: true
 installer_cache_dir: "C:\\Temp\\ansible\\installers"

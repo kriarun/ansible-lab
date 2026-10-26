@@ -1,83 +1,46 @@
 # Team QA Toolbox
 
-Includes everything in the [base toolbox](README.md), plus the tools below.
-Installed versions are defined in
+Includes everything in the [base toolbox](README.md). The additional QA tools are listed in
 [`profiles/windows/toolbox/team_qa.yml`](../../profiles/windows/toolbox/team_qa.yml).
 
-## Tools
+## Shared Node.js packages
 
-| Tool | Purpose | Notes |
-|---|---|---|
-| Node.js + npm | Test projects (Playwright, Cucumber-js) | npm preconfigured for Artifactory |
-| Python + pip | Scripts and tooling | on `PATH`, pip preconfigured (see [pip](#pip)) |
-| Postman | API testing | installed at your first sign-in (`postman`) |
-| k6 | Load tests | on `PATH` |
-| k6 Studio | Recording load tests | installed at your first sign-in (`k6_studio`) |
-| Chrome | Manual testing | updates itself |
-| Firefox ESR | Manual testing | |
-| ctags | Code navigation | on `PATH` |
-| VS Code extensions | Playwright Test, Cucumber autocomplete | installed at your first sign-in (`vscode_extensions`) |
+The test packages (Playwright, Cucumber-js and their dependencies) are installed once in a
+shared folder, maintained by the admins:
 
-The name in brackets is the one to use when re-running an installation
-(see [Troubleshooting](README.md#troubleshooting) in the base toolbox).
+```
+D:\cucumber\node_modules
+```
 
-## One-time setup
+Clone your projects into your own workspace folder, `D:\cucumber\workspace\<your user>`.
+Node finds the shared packages from there automatically.
 
-1. Set your Artifactory credentials as described in the [base toolbox](README.md#one-time-setup-artifactory-credentials).
-   npm uses `ARTIFACTORY_API_KEY`. pip needs its own file, see [pip](#pip).
-2. Get the internal CA bundle from your team lead and copy it to:
-   ```
-   C:\Users\Public\certs\ca-bundle.crt
-   ```
-   npm and pip need it to trust Artifactory. They do not use the Windows certificate store.
+- The Playwright browsers are part of the shared folder. No `npx playwright install` is needed.
+- Do not install Playwright in your project: Playwright would then look for its browsers in
+  the project and not find them.
+- The shared folder is for development and trying things out. The packages in it are
+  defined in a separate Git project, which also builds the pipeline's Docker image.
 
-Never set `strict-ssl=false` to work around certificate errors. It turns off certificate
-checking and can send your Artifactory token to a server pretending to be Artifactory.
+## Installed at your first sign-in
 
-## npm
+Postman, k6 Studio and the VS Code extensions can only be installed per user. Ansible prepares
+them on the machine, and Windows installs them **once for each user at sign-in**.
 
-npm is configured for all users in `C:\Program Files\nodejs\node_modules\npm\npmrc`:
-Artifactory as registry, your token from `ARTIFACTORY_API_KEY`, and the CA bundle above.
-Globally installed packages go to `%APPDATA%\npm`.
+- Sign out completely and sign in again. Reconnecting to an open remote session does not count.
+- The installation runs in the background and can take a minute after sign-in.
+- VS Code extensions log to `%LOCALAPPDATA%\ansible-vscode-extensions.log`. When the
+  extension list changes, the listed versions are installed again, also over a newer
+  version you may have installed yourself.
 
-- Do not set `registry`, `cafile` or `strict-ssl` in your own `%USERPROFILE%\.npmrc`:
-  your file takes precedence and would override the managed settings.
-- Check the setup: `npm config get registry` shows the Artifactory URL, and
-  `npm view playwright version` returns a version number.
+If one of them is missing after sign-in, Windows has recorded it as done even though it failed.
+To run it again, delete its record and sign out and in again:
 
-| Error | Likely cause |
+```
+reg delete "HKCU\Software\Microsoft\Active Setup\Installed Components\Ansible_<name>" /f
+```
+
+| Tool | `<name>` |
 |---|---|
-| `E401` / unauthorized | credentials not set, token expired, or terminal opened before `setx` |
-| certificate error (`UNABLE_TO_GET_ISSUER_CERT…`) or `ENOENT … ca-bundle.crt` | CA bundle missing or in the wrong place |
-
-## pip
-
-The machine-wide `C:\ProgramData\pip\pip.ini` is managed by Ansible and points pip to the CA bundle.
-
-pip cannot read environment variables, so the Artifactory URL and your credentials go into
-your own `%APPDATA%\pip\pip.ini`. Create it once (ask your team lead for the URL):
-
-```ini
-[global]
-index-url = https://<your Artifactory user>:<your Artifactory token>@<Artifactory PyPI URL>/simple
-```
-
-When your token is renewed, update this file too. Do not set `cert` or `trusted-host` in it.
-
-## Playwright browsers
-
-`PLAYWRIGHT_BROWSERS_PATH=0` is set on the machine. Playwright installs its browsers inside
-each project's `node_modules`, so the browser version always matches the project's
-Playwright version. After `npm install`, run this once in each project:
-
-```
-npx playwright install
-```
-
-## VS Code extensions
-
-The extensions are installed into your own VS Code profile at sign-in.
-Log: `%LOCALAPPDATA%\ansible-vscode-extensions.log`.
-
-When the extension list changes, the listed versions are installed again,
-also over a newer version you may have installed yourself.
+| Postman | `postman` |
+| k6 Studio | `k6_studio` |
+| VS Code extensions | `vscode_extensions` |

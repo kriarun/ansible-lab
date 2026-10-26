@@ -1,75 +1,62 @@
 # Development Toolbox
 
-The development toolbox is the set of tools installed on developer machines by Ansible.
-Every machine gets the **base toolbox** described here. Each team adds its own tools on top (see [Teams](#teams)).
+A development toolbox is a Windows server assigned to a team. It provides the tools that
+team needs for its development work, for example QA, UiPath, AI/ML or OutSystems development.
 
-Ansible owns the installed tools and their configuration. Changes made by hand to managed
-files are overwritten on the next run. Installed versions are defined in
-[`profiles/windows/toolbox/base.yml`](../../profiles/windows/toolbox/base.yml).
+All software on a toolbox is installed and configured by Ansible:
 
-## Base tools
+- **Base tools** are installed on every toolbox. They are listed in
+  [`profiles/windows/toolbox/base.yml`](../../profiles/windows/toolbox/base.yml).
+- **Team tools** are added on top, depending on what the team needs. Each team has its own
+  profile in [`profiles/windows/toolbox/`](../../profiles/windows/toolbox/).
 
-| Tool | Purpose | Location |
-|---|---|---|
-| Git | Version control | `C:\Program Files\Git` |
-| VS Code | Editor | `C:\Program Files\Microsoft VS Code` |
-| JDK | Java development (`JAVA_HOME`) | `C:\Program Files\Java\jdk-<version>` |
-| Maven | Java builds (`MAVEN_HOME`) | `C:\Tools\apache-maven-<version>` |
-| Bruno | API testing | `C:\Program Files\Bruno` |
+Changes made by hand to installed tools or their configuration are overwritten on the next run.
 
-## One-time setup: Artifactory credentials
+## Artifactory credentials
 
-Maven (and npm in some team toolboxes) reads your Artifactory credentials from two
-user environment variables. Set them once in a terminal:
+Tools that download packages from Artifactory (Maven, npm, pip, NuGet) need your
+Artifactory credentials. Add these two **user** environment variables once:
+
+| Variable | Value |
+|---|---|
+| `ARTIFACTORY_USERNAME` | your Artifactory user |
+| `ARTIFACTORY_API_KEY` | your Artifactory token |
+
+For example via *Start → "Edit environment variables for your account"*, or in a terminal:
 
 ```
 setx ARTIFACTORY_USERNAME <your Artifactory user>
 setx ARTIFACTORY_API_KEY <your Artifactory token>
 ```
 
-Open a **new** terminal afterwards. When your token is renewed, run the second command again.
+Open a new terminal afterwards. When your token is renewed, update `ARTIFACTORY_API_KEY`.
 
-## Preconfigured for you
+## pip
 
-**Maven**
-- `%MAVEN_HOME%\conf\settings.xml` points Maven to Artifactory and uses the credentials above.
-- `MAVEN_OPTS` makes Java use the Windows certificate store and the Windows proxy settings,
-  so no truststore or proxy configuration is needed.
-- A personal `%USERPROFILE%\.m2\settings.xml` takes precedence over the global one.
-  Use it only for personal additions, not to change the repository or the credentials.
+pip cannot read environment variables, so it needs its own file with the Artifactory URL
+and your credentials. Create `%APPDATA%\pip\pip.ini` once (ask your team lead for the URL):
 
-## Installed at your first sign-in
+```ini
+[global]
+index-url = https://<your Artifactory user>:<your Artifactory token>@<Artifactory PyPI URL>/simple
+```
 
-Some team tools can only be installed per user. Ansible prepares
-them on the machine, and Windows installs them **once for each user at sign-in**.
+When your token is renewed, update this file too. The CA certificate is already configured
+globally, so do not set `cert` in this file.
 
-- Sign out completely and sign in again. Reconnecting to an open remote session does not count.
-- The installation runs in the background and can take a minute after sign-in.
+## Preconfigured tools
 
-## Troubleshooting
+These tools are configured globally for all users. No manual configuration is needed.
 
-**A new or changed environment variable is not visible**
-Open a new terminal. Terminals that were already open keep the old values.
+- **Maven**: Artifactory repository and credentials, Windows certificate store and proxy settings.
+- **Node.js / npm**: Artifactory registry and credentials.
 
-**`mvn` reports that `JAVA_HOME` is not defined correctly**
-Run `echo %JAVA_HOME%`. It must be the JDK folder itself, for example
-`C:\Program Files\Java\jdk-23`, **without** `\bin`. If it is wrong, ask your team lead:
-the value is managed by Ansible.
+## Internal CA certificates
 
-**A tool that is installed at sign-in is missing**
-Windows records the installation as done even if it failed. To run it again:
-
-1. Delete the record for that tool (the name is listed on the team page, for example `postman`):
-   ```
-   reg delete "HKCU\Software\Microsoft\Active Setup\Installed Components\Ansible_<name>" /f
-   ```
-2. Sign out completely and sign in again.
+The bank's internal CA bundle is placed on every toolbox by the system admin team at
+`C:\Users\Public\certs\ca-bundle.crt`. Tools that need it are already configured to use it.
+No action is needed.
 
 ## Teams
 
 - [Team QA](team_qa.md)
-
-## Background
-
-How the toolbox is built (package pinning, installation at sign-in, tool configuration):
-[arc42, chapter 8](../architecture/arc42-architecture.md#8-crosscutting-concepts).

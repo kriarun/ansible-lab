@@ -1,8 +1,12 @@
-team_roles:
-  - python
+# python comes from base.yml; gamma only overrides the versions.
+team_roles: []
 
+# Gamma needs Python 3.10 in addition to the base version (reason: <fill in>).
+# Lists replace the base list, so the base version is listed again.
+# The last one installed comes first on PATH; use `py -3.10` / `py -3.13` to choose.
 python_packages:
   - python_3_10_11
+  - python_3_13_2
 
 debug_mode: true
 installer_cache_dir: "C:\\Temp\\ansible\\installers"

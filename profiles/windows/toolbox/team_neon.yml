@@ -1,9 +1,5 @@
 team_roles:
   - environment_variables
-  - python
-
-python_packages:
-  - python_3_13_2
 
 machine_env:
   enabled: true

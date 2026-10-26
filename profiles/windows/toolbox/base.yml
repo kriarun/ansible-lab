@@ -7,6 +7,8 @@ base_roles:
   - vscode
   - jdk
   - maven
+  - node
+  - python
   - bruno
 
 git_packages:
@@ -20,6 +22,14 @@ jdk_packages:
 
 maven_packages:
   - maven_3_9_9
+
+node_packages:
+  - node_22_14_0
+
+# A team can override this list (vars_files: team profile loads after base).
+# Lists replace, they don't merge: a team that needs an extra version lists both.
+python_packages:
+  - python_3_13_2
 
 bruno_packages:
   - bruno_4_2_1
