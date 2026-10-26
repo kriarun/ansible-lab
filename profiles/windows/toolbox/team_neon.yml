@@ -1,5 +1,4 @@
-team_roles:
-  - environment_variables
+team_roles: []
 
 machine_env:
   enabled: true

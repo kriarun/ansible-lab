@@ -1,9 +1,15 @@
 ---
-# Applies the team profile's machine_env.variables as machine-level env vars.
+# Machine-level env vars = base_machine_env (base.yml) + machine_env.variables
+# (team or machine profile). Same name in both: the team/machine value wins.
+- name: Merge base and profile environment variables
+  ansible.builtin.set_fact:
+    _machine_environment_variables: >-
+      {{ (base_machine_env | default({}))
+         | combine(machine_env.variables
+                   if (machine_env.enabled | default(false)) else {}) }}
+
 - name: Apply machine environment variables
   ansible.builtin.include_tasks: ../../common/tasks/configure_environment_variables.yml
   vars:
-    environment_variables: "{{ machine_env.variables }}"
-  when:
-    - machine_env is defined
-    - machine_env.enabled | default(false)
+    environment_variables: "{{ _machine_environment_variables }}"
+  when: _machine_environment_variables | length > 0

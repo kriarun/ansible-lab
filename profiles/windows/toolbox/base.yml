@@ -10,6 +10,7 @@ base_roles:
   - node
   - python
   - bruno
+  - environment_variables
 
 git_packages:
   - git_2_44_0
@@ -33,3 +34,9 @@ python_packages:
 
 bruno_packages:
   - bruno_4_2_1
+
+# Environment variables for every toolbox. A team or machine profile adds its own
+# in machine_env.variables; the same name there overrides the base value.
+base_machine_env:
+  # Playwright uses the browsers inside node_modules (shared folder) instead of downloading them.
+  PLAYWRIGHT_BROWSERS_PATH: "0"

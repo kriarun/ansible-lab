@@ -12,11 +12,3 @@
   ansible.windows.win_template:
     src: npmrc.j2
     dest: "{{ npm_builtin_npmrc_path }}"
-
-# Playwright stores its browsers inside node_modules (the shared
-# D:\cucumber\node_modules), so they are installed once with the packages.
-- name: Set Playwright browser location
-  ansible.builtin.include_tasks: ../../common/tasks/configure_environment_variables.yml
-  vars:
-    environment_variables:
-      PLAYWRIGHT_BROWSERS_PATH: "0"
